@@ -109,6 +109,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 10
 #include <Wire.h>				//Libreria I2C
 #include <RTClib.h>				//Libreria DS1307 RTC
 #include <LiquidCrystal_I2C.h>	//Libreria LCD I2C con PCF8574AP - http://hmario.home.xs4all.nl/arduino/LiquidCrystal_I2C/
+#include <Voltmetro.h>			//Libreria che calcola il voltaggio
 
 //Versione Firmware
 const String fw_version = "0.7";
@@ -175,6 +176,10 @@ int Tempo[6]={
 float K[6]={
   6,2,1,.333,.1,.033};
 
+//Variabili che Gestiscono il Voltmetro
+// Voltmetro(pin,R1,R2.VRef)
+Voltmetro voltmt1(1,10000.0,1000.0,3.35); //4.80
+float v_voltmt1;
 
 void setup() {
 	lcd.init();					// Avvio L'RTC
