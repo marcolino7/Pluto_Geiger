@@ -176,9 +176,9 @@ int Tempo[6]={
 float K[6]={
   6,2,1,.333,.1,.033};
 
-//Variabili che Gestiscono il Voltmetro
+//Variabili che Gestiscono il Voltmetro con la mia libreria
 // Voltmetro(pin,R1,R2.VRef)
-Voltmetro voltmt1(1,10000.0,1000.0,3.35); //4.80
+Voltmetro voltmt1(1,330000.0,100000.0,1.1); //4.80
 float v_voltmt1;
 
 void setup() {
