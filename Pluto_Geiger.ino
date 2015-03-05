@@ -89,10 +89,12 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 10
 			Aggiunto nel log la scrittura della modalità di funzionamento
 			Aggiunta una bozza della visualizzazione dello stato della batteria
 0.8		-	Inserita la libreria per leggere i volt della batteria
+			Impostata la resistenza di PullUp interna sui pulsanti
 
 */
 
 //Assegnazione PIN
+#define PULSE_IN 7		//Ingresso dei segnali
 #define KEY_MENU 14		//Tasto Menù
 #define KEY_SET 15		//Tasto SET
 #define KEY_UP 8		//Tasto +
@@ -187,11 +189,17 @@ void setup() {
 	lcd.backlight();
 	pinMode(BEEPER, OUTPUT);	// Uscita Buzzer
 	pinMode(AUDIO_OUT, OUTPUT);	// Uscita Audio
+	pinMode(PULSE_IN,INPUT);			// Ingresso impulso della sonda
+	//Inizializzo i pulsanti
 	pinMode(KEY_SET,INPUT);		// Pulsante di selezione
-	pinMode(7,INPUT);			// Ingresso impulso della sonda
 	pinMode(KEY_UP,INPUT);		// Tasto +
 	pinMode(KEY_DW,INPUT);		// Tasto -
 	pinMode(KEY_MENU,INPUT);	// Tasto Menù
+	//Attivo la resistenza di PullUp
+	digitalWrite(KEY_SET,HIGH);
+	digitalWrite(KEY_UP,HIGH);
+	digitalWrite(KEY_DW,HIGH);
+	digitalWrite(KEY_MENU,HIGH);
 
 	//Imposto il riferimento dell'ADC a 1,1 volt
 	analogReference(INTERNAL);
