@@ -88,6 +88,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 10
 				vengono scritti i secondi totali trascorsi
 			Aggiunto nel log la scrittura della modalità di funzionamento
 			Aggiunta una bozza della visualizzazione dello stato della batteria
+0.8		-	Inserita la libreria per leggere i volt della batteria
 
 */
 
@@ -112,7 +113,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 10
 #include <Voltmetro.h>			//Libreria che calcola il voltaggio
 
 //Versione Firmware
-const String fw_version = "0.7";
+const String fw_version = "0.8";
 
 //Inizializzo l'LCD via I2C
 LiquidCrystal_I2C lcd(lcd_addr,16,2);	//inizializzo il display 16 col 2 righe
@@ -178,8 +179,8 @@ float K[6]={
 
 //Variabili che Gestiscono il Voltmetro con la mia libreria
 // Voltmetro(pin,R1,R2.VRef)
-Voltmetro voltmt1(1,330000.0,100000.0,1.1); //4.80
-float v_voltmt1;
+Voltmetro voltmt1(2,330000.0,100000.0,1.1); //4.80
+//float v_voltmt1;
 
 void setup() {
 	lcd.init();					// Avvio L'RTC
@@ -473,7 +474,8 @@ void display_handle(int func) {
 			lcd.setCursor(0,1);
 			//lcd.print(analogRead(2));	//Scrivo del bianco
 			lcd.setCursor(6,1);
-			lcd.print((1.1*analogRead(2))/1023);
+			//lcd.print((1.1*analogRead(2))/1023);
+			lcd.print(voltmt1.getVoltage());
 			break;
 	   }
 	}
