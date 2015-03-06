@@ -34,11 +34,12 @@ Posizioni EEPROM
 0x02	-	Sensibilità Sonda int
 0x03	-	mode 0=One Count 1=Loop Counts 2=Geiger
 0x04	-	Unità di misura 0=mR/h 1=uR/h 2=uSv/h
+0x05	-	Display Mode
 
 Tensione Batteria
-Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 10k e 33k
-				Tensione Max: 4,20V - 0,976744 - ADC 908 - Reale 924
-				Tensione Min: 2,80V - 0,651163 - ADC 606 - Reale 620
+Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 330kk e 100k
+				Tensione Max: 4,20V
+				Tensione Min: 2,80V
 
 
 0.1		-	Eliminato il doppio Setup
@@ -90,6 +91,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 10
 			Aggiunta una bozza della visualizzazione dello stato della batteria
 0.8		-	Inserita la libreria per leggere i volt della batteria
 			Impostata la resistenza di PullUp interna sui pulsanti
+			Inserit la gestione dei settings della retroilluminazione
 
 */
 
@@ -150,6 +152,13 @@ int geiger_status = 3;	//Stato dell'apparecchio per gestire i loop
 						//2 Visualizzazione Risultati
 						//3 Riassunto dei settaggi - Schermata iniziale
 
+char* lcd_desc[] = {"Off","On","10 Sec","20 Sec","30 Sec"};
+byte lcd_mode = 0;		//0=Off 
+						//1=On 
+						//2=10 Sec 
+						//3=20 Sec 
+						//4=30 Sec
+
 //Conteggio in tempo reale/geiger
 //float CPM	lo eredito
 unsigned long sec_totali = 0;
@@ -186,7 +195,7 @@ Voltmetro voltmt1(2,330000.0,100000.0,1.1); //4.80
 
 void setup() {
 	lcd.init();					// Avvio L'RTC
-	lcd.backlight();
+	//lcd.backlight();			// Accendo la retroilluminazione del display
 	pinMode(BEEPER, OUTPUT);	// Uscita Buzzer
 	pinMode(AUDIO_OUT, OUTPUT);	// Uscita Audio
 	pinMode(PULSE_IN,INPUT);			// Ingresso impulso della sonda
@@ -273,6 +282,8 @@ void RTC_Handle(int func){
 		}
 	}
 }
+
+
 
 void display_handle(int func) {
 	//Gestione delle varie visualizzazioni fisse del display
@@ -486,6 +497,25 @@ void display_handle(int func) {
 			lcd.print(voltmt1.getVoltage());
 			break;
 	   }
+		case 20:{
+			//Impostazioni del Display Schermo Statico
+			lcd.setCursor(0,0);
+			lcd.print("Display Settings");	//Scrivo del bianco
+			lcd.setCursor(0,1);
+			lcd.print("                ");	//Scrivo del bianco
+			break;
+	   }
+		case 21:{
+			//Impostazioni del Display Schermo Statico
+			lcd.setCursor(0,1);
+			lcd.setCursor(4, 1); 
+				lcd.print("      ");
+				lcd.setCursor(4, 1);
+				lcd.print(lcd_desc[lcd_mode]);
+
+			break;
+	   }
+
 	}
 }
 
@@ -743,6 +773,30 @@ _year:
 			while (digitalRead(KEY_SET)== HIGH);
 			break;
 		}
+		case 7: { //Impostazioni del Display
+			display_handle(20);
+			delay(500);
+			do {
+				Buzzer();
+				display_handle(21);	// Visualizzo il valore salvato EEPROM
+				delay(50);
+				if (digitalRead(KEY_UP)== HIGH && lcd_mode < 5) lcd_mode++;
+				if (digitalRead(KEY_DW)== HIGH && lcd_mode > 0) lcd_mode--;
+				if (digitalRead(KEY_SET)== LOW) {
+					delay(50);
+					if (digitalRead(KEY_SET)== LOW) {
+						lcd.setCursor(4, 1); 
+						lcd.print("      ");
+						EEPROM.write(0x05,lcd_mode);    // Scrive Set della Base Tempi       
+					}
+				}
+
+
+			}
+			while (digitalRead(KEY_SET)== HIGH);
+			break;
+		}
+
 	}
 }
 
@@ -786,6 +840,9 @@ void EEPROM_Init_Read() {
 	count_units=EEPROM.read(0x04);			//Unità di misura 0=mR/h 1=uR/h 2=uSv/h
 	if (count_units==255) count_units=2;	//Se la EEPROM è vuota, imposto i uSv/h come default
 
+	lcd_mode=EEPROM.read(0x05);				//Modalita dell'LCD
+	if (count_units==255) lcd_mode=1;	//Se la EEPROM è vuota, imposto il display sempre acceso
+
 }
 
 void QuickSet_Handle() { 
@@ -820,6 +877,8 @@ void FullSet_Handle() {
 	setting_handle(3);
 	setting_handle(4);
 	setting_handle(5);
+	setting_handle(6);
+	setting_handle(7);
 
    	TotImp=0;
 	geiger_status = 3; //Dopo il setup Iniziale Torno al riepilogo
