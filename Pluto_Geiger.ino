@@ -92,6 +92,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 0.8		-	Inserita la libreria per leggere i volt della batteria
 			Impostata la resistenza di PullUp interna sui pulsanti
 			Inserit la gestione dei settings della retroilluminazione
+			Gestione Preliminare della retroilluminazione del display
 
 */
 
@@ -152,7 +153,10 @@ int geiger_status = 3;	//Stato dell'apparecchio per gestire i loop
 						//2 Visualizzazione Risultati
 						//3 Riassunto dei settaggi - Schermata iniziale
 
+unsigned long lcd_millis = 0;	//Contiene i millis() a cui si è acceso il display
+byte lcd_state = 0;				//Contiene lo stato della illuminazione del display
 char* lcd_desc[] = {"Off","On","10 Sec","20 Sec","30 Sec"};
+int	lcd_mode_values[] = {0,0,10000,20000,30000};
 byte lcd_mode = 0;		//0=Off 
 						//1=On 
 						//2=10 Sec 
@@ -195,7 +199,8 @@ Voltmetro voltmt1(2,330000.0,100000.0,1.1); //4.80
 
 void setup() {
 	lcd.init();					// Avvio L'RTC
-	//lcd.backlight();			// Accendo la retroilluminazione del display
+	lcd.backlight();			// Accendo la retroilluminazione del display
+	lcd_state = 1;
 	pinMode(BEEPER, OUTPUT);	// Uscita Buzzer
 	pinMode(AUDIO_OUT, OUTPUT);	// Uscita Audio
 	pinMode(PULSE_IN,INPUT);			// Ingresso impulso della sonda
@@ -257,9 +262,62 @@ void setup() {
 	//Leggo i set dalla EEPROM
 	EEPROM_Init_Read();
 
-
+	lcdBacklightHandle(1);	//Accendo la retro illuminazione
 
 }
+
+void lcdBacklightHandle(byte func){
+	//func 0=Spegni 1=Accendi 2=Gestisce
+	switch (func) {
+		case 0: { //Spegni
+			lcd.noBacklight();		//Spengo il display
+			lcd_millis = 0;			//Vuoto la variabile
+			lcd_state = 0;			//Display Spento
+			break;
+		}
+
+		case 1: { //Accendi
+			lcd.backlight();		//Accendo l'illuminazione
+			lcd_millis = millis();  //Salvo l'istante dell'accensione
+			lcd_state = 1;			//Display acceso
+			break;
+		}
+
+		case 2: { //Gestisce
+			switch (lcd_mode) {
+				case 0: {	//Retroilluminazione spenta
+					if (lcd_state == 1) {
+						lcd.noBacklight();		//Spengo il display
+						lcd_state = 0;			//Display Spento
+					}
+					break;
+				}
+				case 1: {	//Retroilluminazione sempre accesa
+					if (lcd_state == 0) {
+						lcd.backlight();		//Accendo l'illuminazione
+						lcd_state = 1;			//Display acceso
+					}
+					break;
+				}
+				default: {	//Gestisco la retroilluminazione
+					if (lcd_state == 1 ) {	//Se il display è acceso verifico il tempo
+						if ( (millis() - lcd_millis) > lcd_mode_values[lcd_mode] ) {
+							//se la differenza ta quando si è acceso il backligt e il momento attuale
+							//è superiore al parametro impostato in lcd_mode_values
+							//Spengo il display
+							lcd.noBacklight();		//Spengo il display
+							lcd_millis = 0;			//Vuoto la variabile
+							lcd_state = 0;			//Display Spento
+						}
+					}
+					break;
+				}
+			}
+		}
+
+	}
+}
+
 
 void RTC_Handle(int func){
 	//Gestione dell'RTC
@@ -789,6 +847,9 @@ _year:
 						lcd.print("      ");
 						EEPROM.write(0x05,lcd_mode);    // Scrive Set della Base Tempi       
 					}
+					//Gestisco il display in base al valore scelto
+					if (lcd_mode == 0) lcdBacklightHandle(0);
+					else lcdBacklightHandle(1);
 				}
 
 
@@ -908,6 +969,7 @@ void MainSettingsRecap() {
 void loop(){
 	//Loop Principale
 	geiger_handle();
+	lcdBacklightHandle(2);	//Gestico la retroilluminazione
 }
 
 void geiger_handle() {
