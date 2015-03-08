@@ -341,41 +341,42 @@ void display_handle(int func) {
 	//Gestione delle varie visualizzazioni fisse del display
 	switch (func) {
 		case 0: {	//Splash Screen
-			lcd.setCursor(0, 0); 
-			lcd.print("  Pluto Geiger  ");
-			lcd.setCursor(0, 1); 
-			lcd.print("    Ver "+fw_version+"     ");
+			lcd.clear();
+			lcd.setCursor(2, 0); 
+			lcd.print("Pluto Geiger");
+			lcd.setCursor(4, 1); 
+			lcd.print("Ver "+fw_version);
 			break;
 		}
 		
 		case 1: {	//Setup CPM Sonda
+			lcd.clear();
 			lcd.setCursor(0, 0); 
 			lcd.print("Probe CPM x mR/h");
-			lcd.setCursor(0, 1); 
-			lcd.print("                ");
+			//lcd.setCursor(0, 1); 
+			//lcd.print("                ");
 			break;
 		}
 
 		case 2: {	//Setup Base tempi
-			lcd.setCursor(0, 0); 
-			lcd.print("  TIME seconds  ");
-			lcd.setCursor(0, 1); 
-			lcd.print("                ");
+			lcd.clear();
+			lcd.setCursor(4, 0); 
+			lcd.print("TIME secs");
+			//lcd.setCursor(0, 1); 
+			//lcd.print("                ");
 			break;
 		}
 
 		case 3:{
 			// Aspetto del display durante il conteggio
 			// Display presente durante il conteggio
+			lcd.clear();
 			lcd.setCursor(0, 0); 
-			lcd.print("Time            ");
-	
+			lcd.print("Time");
 			lcd.setCursor(12, 0);
-			//lcd.print(UnMis);
 			lcd.print("sec.");
-	
 			lcd.setCursor(0, 1); 
-			lcd.print("Pulse           ");
+			lcd.print("Pulse");
 			break;
 		}
 
@@ -393,10 +394,11 @@ void display_handle(int func) {
 		case 5: {	
 			// Aspetto del display a fine conteggio
 			// Display presente alla fine del conteggio
+			lcd.clear();
 			lcd.setCursor(0, 0); 
-			lcd.print("CPM             ");
-			lcd.setCursor(0, 1);
-			lcd.print("                ");
+			lcd.print("CPM");
+			//lcd.setCursor(0, 1);
+			//lcd.print("                ");
 			lcd.setCursor(0, 1);
 			lcd.print(units_desc[count_units]);
 		}
@@ -412,41 +414,44 @@ void display_handle(int func) {
 		}
 		case 7:{
 			//Aspetto del display durante il setup della modalità operativa
-			lcd.setCursor(0,0);
-			lcd.print("   Count Mode   ");
-			lcd.setCursor(0,1);
-			lcd.print("                ");
+			lcd.clear();
+			lcd.setCursor(3,0);
+			lcd.print("Count Mode");
+			//lcd.setCursor(0,1);
+			//lcd.print("                ");
 			break;
 	   }
 		case 8:{
 			//Valore del settaggio durante il setup della modalità operativa
-			lcd.setCursor(0,1);
-			if (mode == 0) lcd.print("    One Count   ");
-			if (mode == 1) lcd.print("   Loop Counts  ");
-			if (mode == 2) lcd.print("      Geiger    ");
+			lcd.setCursor(3,1);
+			if (mode == 0) lcd.print(" One Count");
+			if (mode == 1) lcd.print("Loop Counts");
+			if (mode == 2) lcd.print(" Geiger");
 			break;
 	   }
 		case 9:{
 			//Aspetto del display durante il setup delle Unità di misura
-			lcd.setCursor(0,0);
-			lcd.print("  Count Units   ");
-			lcd.setCursor(0,1);
-			lcd.print("                ");
+			lcd.clear();
+			lcd.setCursor(3,0);
+			lcd.print("Count Unit");
+			//lcd.setCursor(0,1);
+			//lcd.print("                ");
 			break;
 	   }
 		case 10:{
 			//Valore del settaggio durante il setup della
 			//Unità di misura 0=mR/h 1=uR/h 2=uSv/h
-			lcd.setCursor(0,1);
-			lcd.print("                ");
+			//lcd.setCursor(0,1);
+			//lcd.print("                ");
 			lcd.setCursor(5,1);
 			lcd.print(units_desc[count_units]);
 			break;
 	   }
 		case 11:{
 			//Schermo di riepilogo iniziale
+			lcd.clear();
 			lcd.setCursor(0,0);
-			lcd.print("Prb:            ");
+			lcd.print("Prb:");
 			lcd.setCursor(4,0);
 			lcd.print(Sens);
 			lcd.setCursor(10,0);
@@ -456,7 +461,7 @@ void display_handle(int func) {
 			if (mode == 2) lcd.print("Geig");
 			//Seconda Riga
 			lcd.setCursor(0,1);
-			lcd.print("Sec:           ");
+			lcd.print("Sec:");
 			lcd.setCursor(4,1);
 			lcd.print(BaseTempi,DEC);
 			lcd.setCursor(11,1);
@@ -466,10 +471,11 @@ void display_handle(int func) {
 	   }
 		case 12:{
 			//Valore del settaggio durante il setup dell'Ora
-			lcd.setCursor(0,0);
-			lcd.print("  System Time   ");
-			lcd.setCursor(0,1);
-			lcd.print("                ");
+			lcd.clear();
+			lcd.setCursor(3,0);
+			lcd.print("System Time");
+			//lcd.setCursor(0,1);
+			//lcd.print("                ");
 			break;
 	   }
 		case 13:{
@@ -488,10 +494,11 @@ void display_handle(int func) {
 	   }
 		case 14:{
 			//Valore del settaggio durante il setup della data
-			lcd.setCursor(0,0);
-			lcd.print("  System Date   ");
-			lcd.setCursor(0,1);
-			lcd.print("                ");
+			lcd.clear();
+			lcd.setCursor(3,0);
+			lcd.print("System Date");
+			//lcd.setCursor(0,1);
+			//lcd.print("                ");
 			break;
 	   }
 		case 15:{
@@ -510,10 +517,14 @@ void display_handle(int func) {
 	   }
 		case 16:{
 			//Visualizzazione del display per il conteggio in tempo reale Geiger
+			lcd.clear();
 			lcd.setCursor(0,0);
-			lcd.print("CPM:     Mn:    ");
-			lcd.setCursor(0,1);
-			lcd.print("                ");
+			//lcd.print("CPM:     Mn:    ");
+			lcd.print("CPM:");
+			lcd.setCursor(9,0);
+			lcd.print("Mn:");
+			//lcd.setCursor(0,1);
+			//lcd.print("                ");
 			lcd.setCursor(9,1);
 			lcd.print(units_desc[count_units]);
 			break;
@@ -534,10 +545,11 @@ void display_handle(int func) {
 	   }
 		case 18:{
 			//Visualizzazione del display dello stato della batteria
-			lcd.setCursor(0,0);
-			lcd.print(" Battery Status ");	//Scrivo del bianco
-			lcd.setCursor(0,1);
-			lcd.print("                ");	//Scrivo del bianco
+			lcd.clear();
+			lcd.setCursor(5,0);
+			lcd.print("Battery");	//Scrivo del bianco
+			//lcd.setCursor(0,1);
+			//lcd.print("                ");	//Scrivo del bianco
 			break;
 	   }
 		case 19:{
@@ -551,10 +563,10 @@ void display_handle(int func) {
 	   }
 		case 20:{
 			//Impostazioni del Display Schermo Statico
-			lcd.setCursor(0,0);
-			lcd.print("   BackLight    ");	//Scrivo del bianco
+			lcd.clear();
+			lcd.setCursor(4,0);
+			lcd.print("BackLight");	//Scrivo del bianco
 			lcd.setCursor(0,1);
-			//lcd.print("                ");	//Scrivo del bianco
 			break;
 	   }
 		case 21:{
@@ -834,7 +846,7 @@ _year:
 			while (digitalRead(KEY_SET)== HIGH);
 			break;
 		}
-		/*case 7: { //Impostazioni del Display
+		case 7: { //Impostazioni del Display
 			display_handle(20);
 			delay(500);
 			do {
@@ -859,7 +871,7 @@ _year:
 			}
 			while (digitalRead(KEY_SET)== HIGH);
 			break;
-		}*/
+		}
 
 	}
 }
@@ -942,7 +954,7 @@ void FullSet_Handle() {
 	setting_handle(4);
 	setting_handle(5);
 	setting_handle(6);
-	//setting_handle(7);
+	setting_handle(7);
 
    	TotImp=0;
 	geiger_status = 3; //Dopo il setup Iniziale Torno al riepilogo
