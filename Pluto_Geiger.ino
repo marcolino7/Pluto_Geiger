@@ -96,6 +96,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 0.9		-	Ottimizzazione del codice per liberare RAM
 			Settings Gestione display
 			Gestione del tasto menù nei settaggi per non scrivere tutte le volte nella EEPROM
+			Modificato il comportamento del tasto SET durante il conteggio. Geiger Torna al riepilogo, One Count e Loop Salva e torna al riepilogo
 
 */
 
@@ -1030,6 +1031,8 @@ void pulse_count(){
 		TotImp = 0;
 		Rad = 0;
 
+	
+
 	if (mode==2){
 		//Conteggio Geiger
 		delay(500);
@@ -1082,9 +1085,11 @@ void pulse_count(){
 				b100ms = false;
 			}
 			VarServInt1=digitalRead(KEY_MENU); //Leggo il tasto menù per vedere se interrompere
+			VarServInt =digitalRead(KEY_SET); //Leggo il tasto SET per vedere se interrompere
 		} 
-		while (TempoMax > millis() && VarServInt1==HIGH);
+		while (TempoMax > millis() && (VarServInt1==HIGH && VarServInt==HIGH));
 	
+		if (VarServInt==LOW) geiger_status = 3;		//Se premo set esco e torno al riepilogo
 		if (VarServInt1==LOW) geiger_status = 0;	//Se premo menù esco e torno al setup rapido
 		else geiger_status = 2;						//Se Fine del conteggio vado alla visualizzazione
 	}
@@ -1134,10 +1139,11 @@ void end_count() {
 	TempoMax=millis()+BaseTempi*1000;  // Nuovo tempo limite
 
 	if (mode == 0) {	//Se One Count, aspetto il tasto
-		if (VarServInt==LOW) geiger_status = 1;	//E' Stato premuto SET e Ricomincio il conteggio
+		if (VarServInt==LOW) geiger_status = 3;	//E' Stato premuto SET e torno al riepilogo
 		if (VarServInt1==LOW) geiger_status = 0;	//E' Stato premuto MENU e vado nel setup rapido iniziale
 	}
-	if (mode == 1) geiger_status = 1;	//Se Loop Count reinizio il conteggio
+	if ((mode == 1) && (VarServInt==HIGH)) geiger_status = 1;	//Se Loop Count reinizio il conteggio
+	else geiger_status = 3;										//Se Loop Count ma premuto SET riepilogo
 }
 
 
