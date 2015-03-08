@@ -230,10 +230,10 @@ void setup() {
 	pinMode(SS, OUTPUT);
 	lcd.setCursor(0, 1); 
 	if (!SD.begin(chipSelect)) {
-		lcd.print(" SDCard Failed  ");
+		lcd.print("    SD Fail     ");
 		sd_card_ok = false;
 	}else{
-		lcd.print("   SDCard OK    ");
+		lcd.print("     SD OK      ");
 		sd_card_ok = true;
 	}
 	delay(1500);
