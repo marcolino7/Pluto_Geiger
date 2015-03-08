@@ -99,6 +99,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 			Modificato il comportamento del tasto SET durante il conteggio. Geiger Torna al riepilogo, One Count e Loop Salva e torna al riepilogo
 			Ulteriori ottimizzazioni al dipslay liberata altra RAM
 			Ottimizzato ulteriormente il codice e liberata ancora un po' di RAM
+			Inserita la grafica per la gestione della batteria. Manca la logica
 
 */
 
@@ -163,6 +164,14 @@ uint8_t lcd_mode = 0;		//0=Off
 						//3=20 Sec 
 						//4=30 Sec
 
+//Carattere con il simbilo della bartteria scarica
+byte batt0[8] = {0b00100,0b11111,0b10001,0b10001,0b10001,0b10001,0b10001,0b11111};
+byte batt20[8] = {0b00100,0b11111,0b10001,0b10001,0b10001,0b10001,0b11111,0b11111};
+byte batt40[8] = {0b00100,0b11111,0b10001,0b10001,0b10001,0b11111,0b11111,0b11111};
+byte batt60[8] = {0b00100,0b11111,0b10001,0b10001,0b11111,0b11111,0b11111,0b11111};
+byte batt80[8] = {0b00100,0b11111,0b11111,0b11111,0b11111,0b11111,0b11111,0b11111};
+byte batt100[8] = {0b00100,0b11111,0b11111,0b11111,0b11111,0b11111,0b11111,0b11111};
+
 //Conteggio in tempo reale/geiger
 //float CPM	lo eredito
 unsigned long sec_totali = 0;
@@ -195,6 +204,7 @@ float K[6]={
 //Variabili che Gestiscono il Voltmetro con la mia libreria
 // Voltmetro(pin,R1,R2.VRef)
 Voltmetro voltmt1(2,330000.0,100000.0,1.1);
+uint8_t batt_perc = 0;
 
 
 void setup() {
@@ -266,6 +276,14 @@ void setup() {
 	lcdBacklightHandle(1);	//Accendo la retro illuminazione
 
 }
+
+void batteryLevelHandle() {
+	lcd.createChar(0,batt60);
+	lcd.setCursor(15, 1);
+	lcd.write((uint8_t)0);
+}
+
+
 
 void lcdBacklightHandle(uint8_t func){
 	//func 0=Spegni 1=Accendi 2=Gestisce
@@ -374,6 +392,7 @@ void display_handle(uint8_t func) {
 			lcd.print("sec");
 			lcd.setCursor(0, 1); 
 			lcd.print("Pulse");
+			batteryLevelHandle();
 
 			//lcd.setCursor(5,0);
 			//lcd.print("     ");  
@@ -406,6 +425,7 @@ void display_handle(uint8_t func) {
 			//lcd.print("                ");
 			lcd.setCursor(0, 1);
 			lcd.print(units_desc[count_units]);
+			batteryLevelHandle();
 		}
 
 		case 6: {	
@@ -470,7 +490,7 @@ void display_handle(uint8_t func) {
 			lcd.print("Prb:");
 			lcd.setCursor(4,0);
 			lcd.print(Sens);
-			lcd.setCursor(11,0);
+			lcd.setCursor(10,0);
 			if (mode == 0) lcd.print("One");
 			if (mode == 1) lcd.print("Loop");
 			if (mode == 2) lcd.print("Geig");
@@ -479,8 +499,9 @@ void display_handle(uint8_t func) {
 			lcd.print("Sec:");
 			lcd.setCursor(4,1);
 			lcd.print(BaseTempi,DEC);
-			lcd.setCursor(11,1);
+			lcd.setCursor(10,1);
 			lcd.print(units_desc[count_units]);
+			batteryLevelHandle();
 			
 			break;
 	   }
@@ -539,8 +560,8 @@ void display_handle(uint8_t func) {
 			lcd.print("Mn:");
 			lcd.setCursor(9,1);
 			lcd.print(units_desc[count_units]);
+			batteryLevelHandle();
 
-			lcd.setCursor(4,0);
 			lcd.setCursor(4,0);
 			lcd.print(CPM,0);	//Scrivo i CPM
 			lcd.setCursor(12,0);
@@ -1170,7 +1191,7 @@ void Log_Write(){
 
 	if (sd_card_ok == true) {  //Se la card è ok scrivo, altrimenti desisto
 		//Indico la scrittura su SD sul display
-		lcd.setCursor(15,1);
+		lcd.setCursor(14,1);
 		lcd.print("W");
 		delay(50);
 
@@ -1230,7 +1251,7 @@ void Log_Write(){
 		sd_file.close();		//Chiude il file
 		delay(100);
 		//Finita la scrittura su SD
-		lcd.setCursor(15,1);
+		lcd.setCursor(14,1);
 		lcd.print(" ");  
 
 		//Delay totale 1400 mS
