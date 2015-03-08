@@ -95,6 +95,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 			Gestione Preliminare della retroilluminazione del display
 0.9		-	Ottimizzazione del codice per liberare RAM
 			Settings Gestione display
+			Gestione del tasto menù nei settaggi per non scrivere tutte le volte nella EEPROM
 
 */
 
@@ -258,11 +259,11 @@ void setup() {
 	//Leggo i set dalla EEPROM
 	EEPROM_Init_Read();
 
-	//lcdBacklightHandle(1);	//Accendo la retro illuminazione
+	lcdBacklightHandle(1);	//Accendo la retro illuminazione
 
 }
 
-/*void lcdBacklightHandle(byte func){
+void lcdBacklightHandle(byte func){
 	//func 0=Spegni 1=Accendi 2=Gestisce
 	switch (func) {
 		case 0: { //Spegni
@@ -312,7 +313,7 @@ void setup() {
 		}
 
 	}
-}*/
+}
 
 
 void RTC_Handle(int func){
@@ -602,6 +603,7 @@ void setting_handle(int func) {
 					if (Sens < 10000) Sens=Sens-50;
 					else Sens=Sens-1000;
 				}
+				if (digitalRead(KEY_MENU)== LOW) break;
 				delay(50);
 				if (digitalRead(KEY_SET)== LOW) {
 					delay(50);
@@ -629,6 +631,7 @@ void setting_handle(int func) {
 				delay(50);
 				if (digitalRead(KEY_UP)== HIGH && SetTemp < 6) SetTemp++;
 				if (digitalRead(KEY_DW)== HIGH && SetTemp > 0) SetTemp--;
+				if (digitalRead(KEY_MENU)== LOW) break;
 				delay(50);
 				if (digitalRead(KEY_SET)== LOW) {
 					delay(50);
@@ -651,6 +654,7 @@ void setting_handle(int func) {
 				delay(50);
 				if (digitalRead(KEY_UP)== HIGH && mode < 3) mode++;
 				if (digitalRead(KEY_DW)== HIGH && mode > 0) mode--;
+				if (digitalRead(KEY_MENU)== LOW) break;
 				delay(50);
 				if (digitalRead(KEY_SET)== LOW) {
 					delay(50);
@@ -673,6 +677,7 @@ void setting_handle(int func) {
 				delay(50);
 				if (digitalRead(KEY_UP)== HIGH && count_units < 3) count_units++;
 				if (digitalRead(KEY_DW)== HIGH && count_units > 0) count_units--;
+				if (digitalRead(KEY_MENU)== LOW) break;
 				delay(50);
 				if (digitalRead(KEY_SET)== LOW) {
 					delay(50);
@@ -700,6 +705,7 @@ void setting_handle(int func) {
 				delay(50);
 				if (digitalRead(KEY_UP)== HIGH && hour < 25) hour++;
 				if (digitalRead(KEY_DW)== HIGH && hour > 0) hour--;
+				if (digitalRead(KEY_MENU)== LOW) break;
 				delay(50);
 				if (digitalRead(KEY_SET)== LOW) {
 					delay(50);
@@ -718,6 +724,7 @@ _minute:
 				delay(50);
 				if (digitalRead(KEY_UP)== HIGH && minute < 60) minute++;
 				if (digitalRead(KEY_DW)== HIGH && minute > 0) minute--;
+				if (digitalRead(KEY_MENU)== LOW) break;
 				delay(50);
 				if (digitalRead(KEY_SET)== LOW) {
 					delay(50);
@@ -736,6 +743,7 @@ _second:
 				delay(50);
 				if (digitalRead(KEY_UP)== HIGH && second < 60) second++;
 				if (digitalRead(KEY_DW)== HIGH && second > 0) second--;
+				if (digitalRead(KEY_MENU)== LOW) break;
 				delay(50);
 				if (digitalRead(KEY_SET)== LOW) {
 					delay(50);
@@ -770,6 +778,7 @@ _second:
 				delay(50);
 				if (digitalRead(KEY_UP)== HIGH && day < 31) day++;
 				if (digitalRead(KEY_DW)== HIGH && day > 1) day--;
+				if (digitalRead(KEY_MENU)== LOW) break;
 				delay(50);
 				if (digitalRead(KEY_SET)== LOW) {
 					delay(50);
@@ -788,6 +797,7 @@ _month:
 				delay(50);
 				if (digitalRead(KEY_UP)== HIGH && month < 12) month++;
 				if (digitalRead(KEY_DW)== HIGH && month > 1) month--;
+				if (digitalRead(KEY_MENU)== LOW) break;
 				delay(50);
 				if (digitalRead(KEY_SET)== LOW) {
 					delay(50);
@@ -806,6 +816,7 @@ _year:
 				delay(50);
 				if (digitalRead(KEY_UP)== HIGH && year < 2500) year++;
 				if (digitalRead(KEY_DW)== HIGH && year > 2000) year--;
+				if (digitalRead(KEY_MENU)== LOW) break;
 				delay(50);
 				if (digitalRead(KEY_SET)== LOW) {
 					delay(50);
@@ -832,6 +843,7 @@ _year:
 				Buzzer();
 				display_handle(19);	// Visualizzo il valore salvato EEPROM
 				delay(50);
+				if (digitalRead(KEY_MENU)== LOW) break;
 			}
 			while (digitalRead(KEY_SET)== HIGH);
 			break;
@@ -845,6 +857,7 @@ _year:
 				delay(50);
 				if (digitalRead(KEY_UP)== HIGH && lcd_mode < 5) lcd_mode++;
 				if (digitalRead(KEY_DW)== HIGH && lcd_mode > 0) lcd_mode--;
+				if (digitalRead(KEY_MENU)== LOW) break;
 				if (digitalRead(KEY_SET)== LOW) {
 					delay(50);
 					if (digitalRead(KEY_SET)== LOW) {
@@ -853,8 +866,8 @@ _year:
 						EEPROM.write(0x05,lcd_mode);    // Scrive Set della Base Tempi       
 					}
 					//Gestisco il display in base al valore scelto
-					//if (lcd_mode == 0) lcdBacklightHandle(0);
-					//else lcdBacklightHandle(1);
+					if (lcd_mode == 0) lcdBacklightHandle(0);
+					else lcdBacklightHandle(1);
 				}
 
 
@@ -974,7 +987,7 @@ void MainSettingsRecap() {
 void loop(){
 	//Loop Principale
 	geiger_handle();
-	//lcdBacklightHandle(2);	//Gestico la retroilluminazione
+	lcdBacklightHandle(2);	//Gestico la retroilluminazione
 }
 
 void geiger_handle() {
