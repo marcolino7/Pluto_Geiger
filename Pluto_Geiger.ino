@@ -124,40 +124,35 @@ const String fw_version = "0.8";
 LiquidCrystal_I2C lcd(lcd_addr,16,2);	//inizializzo il display 16 col 2 righe
 
 
-byte SetTemp=0;       // Indice della Base Tempi
-long Imp=0;           // Impulso
-long TotImp=0;        // Totale degli impulsi
-unsigned long BaseTempi=10;    // * * * Base tempi in secondi
-long TempoMax=0;      // Termine conteggio
-int VarServInt=0;     // Variabile di servizio
-int VarServInt1=0;     // Variabile di servizio uno
-int Set=1;            // Set su Battery
-int Manca=0;          // Tempo mancante alla fine in secondi
+uint8_t SetTemp=0;       // Indice della Base Tempi
+unsigned long TotImp=0;        // Totale degli impulsi
+uint16_t BaseTempi=10;    // * * * Base tempi in secondi
+unsigned long TempoMax=0;      // Termine conteggio
+uint8_t VarServInt=0;     // Variabile di servizio
+uint8_t VarServInt1=0;     // Variabile di servizio uno
 char UnMis[5]="sec."; // Unità di misura della base tempi
 unsigned int Sens=1000;      // Sensibilità in mR/h
 float CPM=0;          // CPM
 float Molt=6;         // * * * Moltiplicatore fra CP e CPM (dipende da BaseTempi)
 float Rad=0;		  // Radioattività espressa in mR/h
-long  Volt=0;         // Tensione
 int beep_flag=0;
-int rr=0;
-byte mode = 0;			//0 = One Count 1 = Loop Count 2 = Geiger
-byte count_units = 0;			//Unità di misura 0=mR/h 1=uR/h 2=uSv/h
+uint8_t mode = 0;			//0 = One Count 1 = Loop Count 2 = Geiger
+uint8_t count_units = 0;			//Unità di misura 0=mR/h 1=uR/h 2=uSv/h
 char* units_desc[] = {"mR/h","uR/h","uSv/h"};
 int T2count=0;			//Counter che viene incrementato dal timer 2
-byte lampeggio=0;			//variabile che si inverte ogni 500ms e serve per far lampeggiare le cose
+boolean lampeggio=0;			//variabile che si inverte ogni 500ms e serve per far lampeggiare le cose
 
-int geiger_status = 3;	//Stato dell'apparecchio per gestire i loop
+uint8_t geiger_status = 3;	//Stato dell'apparecchio per gestire i loop
 						//0 Setup Iniziale Parametri
 						//1 Conteggio
 						//2 Visualizzazione Risultati
 						//3 Riassunto dei settaggi - Schermata iniziale
 
 unsigned long lcd_millis = 0;	//Contiene i millis() a cui si è acceso il display
-byte lcd_state = 0;				//Contiene lo stato della illuminazione del display
+boolean lcd_state = 0;				//Contiene lo stato della illuminazione del display
 char* lcd_desc[] = {"Off","On","10 Sec","20 Sec","30 Sec"};
-int	lcd_mode_values[] = {0,0,10000,20000,30000};
-byte lcd_mode = 0;		//0=Off 
+uint16_t	lcd_mode_values[] = {0,0,10000,20000,30000};
+uint8_t lcd_mode = 0;		//0=Off 
 						//1=On 
 						//2=10 Sec 
 						//3=20 Sec 
@@ -181,13 +176,13 @@ boolean sd_card_ok = false;
 	RTC_DS1307 RTC; //Dichiaro l'oggetto RTC
     //Array di cifre con lo zero davanti, per gestire la visualizzazione sul display
     const char* CifreConZero[] = {"00", "01", "02", "03", "04", "05", "06", "07", "08", "09"};
-	volatile byte hour, minute, second, month, day;
-	volatile int year;
-	byte timeedit_hh=0,timeedit_mm=0,timeedit_ss=0;	//Variabile che servono a modificare il display in edit
+	volatile uint8_t hour, minute, second, month, day;
+	volatile uint16_t year;
+	uint8_t timeedit_hh=0,timeedit_mm=0,timeedit_ss=0;	//Variabile che servono a modificare il display in edit
 
 
 // Base Tempi ---------------
-int Tempo[6]={
+uint8_t Tempo[6]={
   10,30,60,180,600,1800};
 float K[6]={
   6,2,1,.333,.1,.033};
@@ -262,11 +257,11 @@ void setup() {
 	//Leggo i set dalla EEPROM
 	EEPROM_Init_Read();
 
-	lcdBacklightHandle(1);	//Accendo la retro illuminazione
+	//lcdBacklightHandle(1);	//Accendo la retro illuminazione
 
 }
 
-void lcdBacklightHandle(byte func){
+/*void lcdBacklightHandle(byte func){
 	//func 0=Spegni 1=Accendi 2=Gestisce
 	switch (func) {
 		case 0: { //Spegni
@@ -316,7 +311,7 @@ void lcdBacklightHandle(byte func){
 		}
 
 	}
-}
+}*/
 
 
 void RTC_Handle(int func){
@@ -555,7 +550,7 @@ void display_handle(int func) {
 			lcd.print(voltmt1.getVoltage());
 			break;
 	   }
-		case 20:{
+	/*	case 20:{
 			//Impostazioni del Display Schermo Statico
 			lcd.setCursor(0,0);
 			lcd.print("Display Settings");	//Scrivo del bianco
@@ -572,7 +567,7 @@ void display_handle(int func) {
 				lcd.print(lcd_desc[lcd_mode]);
 
 			break;
-	   }
+	   }*/
 
 	}
 }
@@ -831,7 +826,7 @@ _year:
 			while (digitalRead(KEY_SET)== HIGH);
 			break;
 		}
-		case 7: { //Impostazioni del Display
+		/*case 7: { //Impostazioni del Display
 			display_handle(20);
 			delay(500);
 			do {
@@ -848,15 +843,15 @@ _year:
 						EEPROM.write(0x05,lcd_mode);    // Scrive Set della Base Tempi       
 					}
 					//Gestisco il display in base al valore scelto
-					if (lcd_mode == 0) lcdBacklightHandle(0);
-					else lcdBacklightHandle(1);
+					//if (lcd_mode == 0) lcdBacklightHandle(0);
+					//else lcdBacklightHandle(1);
 				}
 
 
 			}
 			while (digitalRead(KEY_SET)== HIGH);
 			break;
-		}
+		}*/
 
 	}
 }
@@ -939,7 +934,7 @@ void FullSet_Handle() {
 	setting_handle(4);
 	setting_handle(5);
 	setting_handle(6);
-	setting_handle(7);
+	//setting_handle(7);
 
    	TotImp=0;
 	geiger_status = 3; //Dopo il setup Iniziale Torno al riepilogo
@@ -969,7 +964,7 @@ void MainSettingsRecap() {
 void loop(){
 	//Loop Principale
 	geiger_handle();
-	lcdBacklightHandle(2);	//Gestico la retroilluminazione
+	//lcdBacklightHandle(2);	//Gestico la retroilluminazione
 }
 
 void geiger_handle() {
