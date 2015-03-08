@@ -149,7 +149,7 @@ uint8_t geiger_status = 3;	//Stato dell'apparecchio per gestire i loop
 
 unsigned long lcd_millis = 0;	//Contiene i millis() a cui si è acceso il display
 boolean lcd_state = 0;				//Contiene lo stato della illuminazione del display
-//const char* lcd_desc[] = {"Off","On","10 Sec","20 Sec","30 Sec"};
+//const char* lcd_desc[] = {"Off","On","30 Sec"};
 uint16_t	lcd_mode_values[] = {0,0,10000,20000,30000};
 uint8_t lcd_mode = 0;		//0=Off 
 						//1=On 
@@ -537,7 +537,6 @@ void display_handle(int func) {
 			lcd.setCursor(0,0);
 			lcd.print(" Battery Status ");	//Scrivo del bianco
 			lcd.setCursor(0,1);
-			//lcd.print("     Volt -    %");	//Scrivo del bianco
 			lcd.print("                ");	//Scrivo del bianco
 			break;
 	   }
@@ -550,24 +549,33 @@ void display_handle(int func) {
 			lcd.print(voltmt1.getVoltage());
 			break;
 	   }
-	/*	case 20:{
+		case 20:{
 			//Impostazioni del Display Schermo Statico
 			lcd.setCursor(0,0);
-			lcd.print("Display Settings");	//Scrivo del bianco
+			lcd.print("   BackLight    ");	//Scrivo del bianco
 			lcd.setCursor(0,1);
-			lcd.print("                ");	//Scrivo del bianco
+			//lcd.print("                ");	//Scrivo del bianco
 			break;
 	   }
 		case 21:{
 			//Impostazioni del Display Schermo Statico
-			lcd.setCursor(0,1);
+			//lcd.setCursor(0,1);
 			lcd.setCursor(4, 1); 
 				lcd.print("      ");
 				lcd.setCursor(4, 1);
-				lcd.print(lcd_desc[lcd_mode]);
-
+				switch (lcd_mode)  {
+					case 0:
+						lcd.print("Off");
+						break;
+					case 1:
+						lcd.print("On");
+						break;
+					case 2:
+						lcd.print("30 sec");
+						break;
+				}
 			break;
-	   }*/
+	   }
 
 	}
 }
@@ -833,7 +841,7 @@ _year:
 				Buzzer();
 				display_handle(21);	// Visualizzo il valore salvato EEPROM
 				delay(50);
-				if (digitalRead(KEY_UP)== HIGH && lcd_mode < 5) lcd_mode++;
+				if (digitalRead(KEY_UP)== HIGH && lcd_mode < 4) lcd_mode++;
 				if (digitalRead(KEY_DW)== HIGH && lcd_mode > 0) lcd_mode--;
 				if (digitalRead(KEY_SET)== LOW) {
 					delay(50);
