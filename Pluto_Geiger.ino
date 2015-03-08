@@ -228,6 +228,7 @@ void setup() {
 
 	//Inizializzo la SDCard
 	pinMode(SS, OUTPUT);
+	lcd.clear();
 	lcd.setCursor(0, 1); 
 	if (!SD.begin(chipSelect)) {
 		lcd.setCursor(4, 1); 
