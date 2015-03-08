@@ -130,7 +130,6 @@ uint16_t BaseTempi=10;    // * * * Base tempi in secondi
 unsigned long TempoMax=0;      // Termine conteggio
 uint8_t VarServInt=0;     // Variabile di servizio
 uint8_t VarServInt1=0;     // Variabile di servizio uno
-char UnMis[5]="sec."; // Unità di misura della base tempi
 unsigned int Sens=1000;      // Sensibilità in mR/h
 float CPM=0;          // CPM
 float Molt=6;         // * * * Moltiplicatore fra CP e CPM (dipende da BaseTempi)
@@ -150,7 +149,7 @@ uint8_t geiger_status = 3;	//Stato dell'apparecchio per gestire i loop
 
 unsigned long lcd_millis = 0;	//Contiene i millis() a cui si è acceso il display
 boolean lcd_state = 0;				//Contiene lo stato della illuminazione del display
-char* lcd_desc[] = {"Off","On","10 Sec","20 Sec","30 Sec"};
+//const char* lcd_desc[] = {"Off","On","10 Sec","20 Sec","30 Sec"};
 uint16_t	lcd_mode_values[] = {0,0,10000,20000,30000};
 uint8_t lcd_mode = 0;		//0=Off 
 						//1=On 
@@ -372,7 +371,8 @@ void display_handle(int func) {
 			lcd.print("Time            ");
 	
 			lcd.setCursor(12, 0);
-			lcd.print(UnMis);
+			//lcd.print(UnMis);
+			lcd.print("sec.");
 	
 			lcd.setCursor(0, 1); 
 			lcd.print("Pulse           ");
