@@ -97,6 +97,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 			Settings Gestione display
 			Gestione del tasto menù nei settaggi per non scrivere tutte le volte nella EEPROM
 			Modificato il comportamento del tasto SET durante il conteggio. Geiger Torna al riepilogo, One Count e Loop Salva e torna al riepilogo
+			Ulteriori ottimizzazioni al dipslay liberata altra RAM
 
 */
 
@@ -357,15 +358,15 @@ void display_handle(int func) {
 			lcd.clear();
 			lcd.setCursor(0, 0); 
 			lcd.print("Probe CPM x mR/h");
-			//lcd.setCursor(0, 1); 
-			//lcd.print("                ");
+			lcd.setCursor(6, 1);
+			lcd.print(Sens);
 			break;
 		}
 
 		case 2: {	//Setup Base tempi
 			lcd.clear();
 			lcd.setCursor(4, 0); 
-			lcd.print("TIME secs");
+			lcd.print("TIME sec");
 			//lcd.setCursor(0, 1); 
 			//lcd.print("                ");
 			break;
@@ -381,17 +382,25 @@ void display_handle(int func) {
 			lcd.print("sec.");
 			lcd.setCursor(0, 1); 
 			lcd.print("Pulse");
-			break;
-		}
 
-		case 4: {
-			// Visualizza il conteggio sul display
-			lcd.setCursor(5,0);
-			lcd.print("     ");  
+			//lcd.setCursor(5,0);
+			//lcd.print("     ");  
 			lcd.setCursor(6,0);
 			lcd.print(int((TempoMax-millis())/1000));
 			lcd.setCursor(6, 1); 
 			lcd.print(TotImp);
+			break;
+		}
+
+		case 4: {
+			//PORTATO NEL 3
+			// Visualizza il conteggio sul display
+			/*lcd.setCursor(5,0);
+			lcd.print("     ");  
+			lcd.setCursor(6,0);
+			lcd.print(int((TempoMax-millis())/1000));
+			lcd.setCursor(6, 1); 
+			lcd.print(TotImp);*/
 			break;
 	    }
 
@@ -421,16 +430,27 @@ void display_handle(int func) {
 			lcd.clear();
 			lcd.setCursor(3,0);
 			lcd.print("Count Mode");
-			//lcd.setCursor(0,1);
-			//lcd.print("                ");
+			if (mode == 0) {
+				lcd.setCursor(4,1);
+				lcd.print("One Count");
+			}
+			if (mode == 1) {
+				lcd.setCursor(3,1);
+				lcd.print("Loop Count");
+			}
+			if (mode == 2) {
+				lcd.setCursor(5,1);
+				lcd.print("Geiger");
+			}
 			break;
 	   }
 		case 8:{
+			//PORTATA LA GESTIONE AL /
 			//Valore del settaggio durante il setup della modalità operativa
-			lcd.setCursor(3,1);
-			if (mode == 0) lcd.print(" One Count");
-			if (mode == 1) lcd.print("Loop Counts");
-			if (mode == 2) lcd.print(" Geiger");
+			//lcd.setCursor(3,1);
+			//if (mode == 0) lcd.print(" One Count");
+			//if (mode == 1) lcd.print("Loop Counts");
+			//if (mode == 2) lcd.print(" Geiger    ");
 			break;
 	   }
 		case 9:{
@@ -458,8 +478,7 @@ void display_handle(int func) {
 			lcd.print("Prb:");
 			lcd.setCursor(4,0);
 			lcd.print(Sens);
-			lcd.setCursor(10,0);
-			lcd.print(" ");
+			lcd.setCursor(11,0);
 			if (mode == 0) lcd.print("One");
 			if (mode == 1) lcd.print("Loop");
 			if (mode == 2) lcd.print("Geig");
@@ -523,19 +542,26 @@ void display_handle(int func) {
 			//Visualizzazione del display per il conteggio in tempo reale Geiger
 			lcd.clear();
 			lcd.setCursor(0,0);
-			//lcd.print("CPM:     Mn:    ");
 			lcd.print("CPM:");
 			lcd.setCursor(9,0);
 			lcd.print("Mn:");
-			//lcd.setCursor(0,1);
-			//lcd.print("                ");
 			lcd.setCursor(9,1);
 			lcd.print(units_desc[count_units]);
+
+			lcd.setCursor(4,0);
+			lcd.setCursor(4,0);
+			lcd.print(CPM,0);	//Scrivo i CPM
+			lcd.setCursor(12,0);
+			lcd.print(min_totali);	//Scrivo i minuti
+			lcd.setCursor(2, 1); 
+			lcd.setCursor(2, 1);
+			lcd.print(Rad,3);		//Scrivo il valore calcolato
 			break;
 	   }
 		case 17:{
+			//PORTATO NEL 16
 			//Visualizzazione del conteggio in tempo reale Geiger
-			lcd.setCursor(4,0);
+			/*lcd.setCursor(4,0);
 			lcd.print("     ");	//Scrivo del bianco
 			lcd.setCursor(4,0);
 			lcd.print(CPM,0);	//Scrivo i CPM
@@ -544,7 +570,7 @@ void display_handle(int func) {
 			lcd.setCursor(2, 1); 
 			lcd.print("       ");	//Scrivo del bianco
 			lcd.setCursor(2, 1);
-			lcd.print(Rad,3);
+			lcd.print(Rad,3);*/
 			break;
 	   }
 		case 18:{
@@ -588,14 +614,11 @@ void setting_handle(int func) {
 	//Gestice le impostazioni
 	switch (func) {
 		case 0:{	//Sensibilità Sonda
-			display_handle(1);
+			//display_handle(1);
 			delay(500);
 			do {
 				Buzzer();
-				lcd.setCursor(6, 1); 
-				lcd.print("    ");
-				lcd.setCursor(6, 1);
-				lcd.print(Sens);
+				display_handle(1);
 				if (digitalRead(KEY_UP)== HIGH && Sens<64000) {
 					if (Sens < 10000) Sens=Sens+50;
 					else Sens=Sens+1000;      
@@ -651,7 +674,7 @@ void setting_handle(int func) {
 			delay(500);
 			do {
 				Buzzer();
-				display_handle(8);	// Visualizzo il valore salvato EEPROM
+				display_handle(7);	// Visualizzo il valore salvato EEPROM
 				delay(50);
 				if (digitalRead(KEY_UP)== HIGH && mode < 3) mode++;
 				if (digitalRead(KEY_DW)== HIGH && mode > 0) mode--;
@@ -1036,7 +1059,7 @@ void pulse_count(){
 	if (mode==2){
 		//Conteggio Geiger
 		delay(500);
-		display_handle(16);		//Visualizzo la parte statica del display
+		//display_handle(16);		//Visualizzo la parte statica del display
 		inizio = millis();	//Momento iniziale del conteggio
 		do{
 			Buzzer();			//Suono il buzzer se necessario
@@ -1059,7 +1082,7 @@ void pulse_count(){
 				b500ms=false;	//Resetto la variabile dell'interrupt ogni 500ms
 			}
 			if (b100ms == true){		//aggiorno il display ogni 100ms
-				display_handle(17);		//Visualizzo sul display la parte dinamica
+				display_handle(16);		//Visualizzo sul display la parte statica e dinamica
 				b100ms = false;
 			}
 			//Se premo il tasto menù dirante il conteggio scrivo il log
@@ -1074,14 +1097,14 @@ void pulse_count(){
 	}else{
 		//Conteggio One Count o Loop Count
 		TempoMax=millis()+BaseTempi*1000;
-		display_handle(3);	//Display per il conteggio
+		//display_handle(3);	//Display per il conteggio
 		do {
 			Buzzer();
 			// Visualizza conteggio in corso 10 volte ogni secondo
 			//if (millis()%100 < 1) display_handle(4); //Display in conteggio
 			//Visualizzo il conteggio ogni 500 ms
 			if (b100ms == true) {
-				display_handle(4);
+				display_handle(3);
 				b100ms = false;
 			}
 			VarServInt1=digitalRead(KEY_MENU); //Leggo il tasto menù per vedere se interrompere
