@@ -98,6 +98,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 			Gestione del tasto menù nei settaggi per non scrivere tutte le volte nella EEPROM
 			Modificato il comportamento del tasto SET durante il conteggio. Geiger Torna al riepilogo, One Count e Loop Salva e torna al riepilogo
 			Ulteriori ottimizzazioni al dipslay liberata altra RAM
+			Ottimizzato ulteriormente il codice e liberata ancora un po' di RAM
 
 */
 
@@ -154,7 +155,7 @@ uint8_t geiger_status = 3;	//Stato dell'apparecchio per gestire i loop
 
 unsigned long lcd_millis = 0;	//Contiene i millis() a cui si è acceso il display
 boolean lcd_state = 0;				//Contiene lo stato della illuminazione del display
-const char* lcd_desc[] = {"Off   ","On    ","10 Sec","20 Sec","30 Sec"};
+const char* lcd_desc[] = {"Off","On","10 Sec","20 Sec","30 Sec"};
 uint16_t	lcd_mode_values[] = {0,0,10000,20000,30000};
 uint8_t lcd_mode = 0;		//0=Off 
 						//1=On 
@@ -193,16 +194,16 @@ float K[6]={
 
 //Variabili che Gestiscono il Voltmetro con la mia libreria
 // Voltmetro(pin,R1,R2.VRef)
-Voltmetro voltmt1(2,330000.0,100000.0,1.1); //4.80
-//float v_voltmt1;
+Voltmetro voltmt1(2,330000.0,100000.0,1.1);
+
 
 void setup() {
-	lcd.init();					// Avvio L'RTC
+	lcd.init();					// Avvio il display
 	lcd.backlight();			// Accendo la retroilluminazione del display
 	lcd_state = 1;
 	pinMode(BEEPER, OUTPUT);	// Uscita Buzzer
 	pinMode(AUDIO_OUT, OUTPUT);	// Uscita Audio
-	pinMode(PULSE_IN,INPUT);			// Ingresso impulso della sonda
+	pinMode(PULSE_IN,INPUT);	// Ingresso impulso della sonda
 	//Inizializzo i pulsanti
 	pinMode(KEY_SET,INPUT);		// Pulsante di selezione
 	pinMode(KEY_UP,INPUT);		// Tasto +
@@ -222,28 +223,28 @@ void setup() {
 	delay(1500);
 
 	digitalWrite(BEEPER, HIGH);
-	delay(250); //100
+	delay(500); //100
 	digitalWrite(BEEPER, LOW);
 
 	//Inizializzo la SDCard
 	pinMode(SS, OUTPUT);
 	lcd.setCursor(0, 1); 
 	if (!SD.begin(chipSelect)) {
-		lcd.print("    SD Fail     ");
+		lcd.setCursor(4, 1); 
+		lcd.print("SD Fail");
 		sd_card_ok = false;
 	}else{
-		lcd.print("     SD OK      ");
+		lcd.setCursor(5, 1);
+		lcd.print("SD OK");
 		sd_card_ok = true;
 	}
 	delay(1500);
-
-	//SD.remove("LETTURE.TXT");
 
 	//Inizializzo il bus I2C
 	Wire.begin();
 
 	//Inizializzo l'RTC
-	RTC_Handle(0);
+	RTC_Handle();
 
 	//Imposto gli interrupt sul Pin 7
 	PCICR |= (1 << PCIE2);
@@ -265,7 +266,7 @@ void setup() {
 
 }
 
-void lcdBacklightHandle(byte func){
+void lcdBacklightHandle(uint8_t func){
 	//func 0=Spegni 1=Accendi 2=Gestisce
 	switch (func) {
 		case 0: { //Spegni
@@ -318,10 +319,7 @@ void lcdBacklightHandle(byte func){
 }
 
 
-void RTC_Handle(int func){
-	//Gestione dell'RTC
-	switch (func) {
-		case 0: {	//RTC Init
+void RTC_Handle(){
 			RTC.begin();
 			RTC.setSqwOutSignal(RTC_DS1307::Frequency_1Hz);	//Avvio l'uscita a 1Hz
 			if (! RTC.isrunning()) {
@@ -331,26 +329,19 @@ void RTC_Handle(int func){
 				RTC.adjust(DateTime(2000,01,01,00,00,00));
 				RTC.setSqwOutSignal(RTC_DS1307::Frequency_1Hz);
 			}
-			break;
-		}
-		
-		case 1: {
-			break;
-		}
-	}
 }
 
 
 
-void display_handle(int func) {
+void display_handle(uint8_t func) {
 	//Gestione delle varie visualizzazioni fisse del display
 	switch (func) {
 		case 0: {	//Splash Screen
 			lcd.clear();
 			lcd.setCursor(2, 0); 
 			lcd.print("Pluto Geiger");
-			lcd.setCursor(4, 1); 
-			lcd.print("Ver "+fw_version);
+			lcd.setCursor(6, 1); 
+			lcd.print("V."+fw_version);
 			break;
 		}
 		
@@ -379,7 +370,7 @@ void display_handle(int func) {
 			lcd.setCursor(0, 0); 
 			lcd.print("Time");
 			lcd.setCursor(12, 0);
-			lcd.print("sec.");
+			lcd.print("sec");
 			lcd.setCursor(0, 1); 
 			lcd.print("Pulse");
 
@@ -596,21 +587,14 @@ void display_handle(int func) {
 			lcd.clear();
 			lcd.setCursor(4,0);
 			lcd.print("BackLight");	//Scrivo del bianco
-			lcd.setCursor(0,1);
-			break;
-	   }
-		case 21:{
-			//Impostazioni del Display Schermo Statico
-			//lcd.setCursor(0,1);
 			lcd.setCursor(4, 1); 
 			lcd.print(lcd_desc[lcd_mode]);
 			break;
 	   }
-
 	}
 }
 
-void setting_handle(int func) {
+void setting_handle(uint8_t func) {
 	//Gestice le impostazioni
 	switch (func) {
 		case 0:{	//Sensibilità Sonda
@@ -877,7 +861,7 @@ _year:
 			delay(500);
 			do {
 				Buzzer();
-				display_handle(21);	// Visualizzo il valore salvato EEPROM
+				display_handle(20);	// Visualizzo il valore salvato EEPROM
 				delay(50);
 				if (digitalRead(KEY_UP)== HIGH && lcd_mode < 5) lcd_mode++;
 				if (digitalRead(KEY_DW)== HIGH && lcd_mode > 0) lcd_mode--;
@@ -903,7 +887,7 @@ _year:
 	}
 }
 
-void gestione_cifre(int dato, int status){
+void gestione_cifre(uint16_t dato, uint8_t status){
 //In questa routine normalizzo le cifre di data e ora e le faccio lampeggiare se sono in modifica
 //dato = Dato da normalizzare
 //status = Modalità 0=visualizza 1=lampeggia
