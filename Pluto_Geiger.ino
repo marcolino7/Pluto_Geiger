@@ -100,6 +100,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 			Ulteriori ottimizzazioni al dipslay liberata altra RAM
 			Ottimizzato ulteriormente il codice e liberata ancora un po' di RAM
 			Inserita la grafica per la gestione della batteria. Manca la logica
+			Versione iniziale della logica della batteria
 
 */
 
@@ -353,7 +354,7 @@ void RTC_Handle(){
 			RTC.begin();
 			RTC.setSqwOutSignal(RTC_DS1307::Frequency_1Hz);	//Avvio l'uscita a 1Hz
 			if (! RTC.isrunning()) {
-				//Se l'RTC non � inizializzato imposto l'ora di default e lo avvio
+				//Se l'RTC non e' inizializzato imposto l'ora di default e lo avvio
 				//Succede solo alla prima accensione o quando si scarica la batteria
 				//RTC.adjust(DateTime(__DATE__, __TIME__));
 				RTC.adjust(DateTime(2000,01,01,00,00,00));
@@ -388,8 +389,6 @@ void display_handle(uint8_t func) {
 			lcd.clear();
 			lcd.setCursor(4, 0); 
 			lcd.print("TIME sec");
-			//lcd.setCursor(0, 1); 
-			//lcd.print("                ");
 			break;
 		}
 
@@ -405,8 +404,6 @@ void display_handle(uint8_t func) {
 			lcd.print("Pulse");
 			batteryLevelHandle();
 
-			//lcd.setCursor(5,0);
-			//lcd.print("     ");  
 			lcd.setCursor(6,0);
 			lcd.print(int((TempoMax-millis())/1000));
 			lcd.setCursor(6, 1); 
@@ -416,13 +413,6 @@ void display_handle(uint8_t func) {
 
 		case 4: {
 			//PORTATO NEL 3
-			// Visualizza il conteggio sul display
-			/*lcd.setCursor(5,0);
-			lcd.print("     ");  
-			lcd.setCursor(6,0);
-			lcd.print(int((TempoMax-millis())/1000));
-			lcd.setCursor(6, 1); 
-			lcd.print(TotImp);*/
 			break;
 	    }
 
@@ -432,8 +422,7 @@ void display_handle(uint8_t func) {
 			lcd.clear();
 			lcd.setCursor(0, 0); 
 			lcd.print("CPM");
-			//lcd.setCursor(0, 1);
-			//lcd.print("                ");
+
 			lcd.setCursor(0, 1);
 			lcd.print(units_desc[count_units]);
 			batteryLevelHandle();
@@ -469,11 +458,6 @@ void display_handle(uint8_t func) {
 	   }
 		case 8:{
 			//PORTATA LA GESTIONE AL /
-			//Valore del settaggio durante il setup della modalità operativa
-			//lcd.setCursor(3,1);
-			//if (mode == 0) lcd.print(" One Count");
-			//if (mode == 1) lcd.print("Loop Counts");
-			//if (mode == 2) lcd.print(" Geiger    ");
 			break;
 	   }
 		case 9:{
@@ -481,15 +465,11 @@ void display_handle(uint8_t func) {
 			lcd.clear();
 			lcd.setCursor(3,0);
 			lcd.print("Count Unit");
-			//lcd.setCursor(0,1);
-			//lcd.print("                ");
 			break;
 	   }
 		case 10:{
 			//Valore del settaggio durante il setup della
 			//Unità di misura 0=mR/h 1=uR/h 2=uSv/h
-			//lcd.setCursor(0,1);
-			//lcd.print("                ");
 			lcd.setCursor(5,1);
 			lcd.print(units_desc[count_units]);
 			break;
@@ -521,8 +501,6 @@ void display_handle(uint8_t func) {
 			lcd.clear();
 			lcd.setCursor(3,0);
 			lcd.print("System Time");
-			//lcd.setCursor(0,1);
-			//lcd.print("                ");
 			break;
 	   }
 		case 13:{
@@ -544,8 +522,6 @@ void display_handle(uint8_t func) {
 			lcd.clear();
 			lcd.setCursor(3,0);
 			lcd.print("System Date");
-			//lcd.setCursor(0,1);
-			//lcd.print("                ");
 			break;
 	   }
 		case 15:{
@@ -584,17 +560,6 @@ void display_handle(uint8_t func) {
 	   }
 		case 17:{
 			//PORTATO NEL 16
-			//Visualizzazione del conteggio in tempo reale Geiger
-			/*lcd.setCursor(4,0);
-			lcd.print("     ");	//Scrivo del bianco
-			lcd.setCursor(4,0);
-			lcd.print(CPM,0);	//Scrivo i CPM
-			lcd.setCursor(12,0);
-			lcd.print(min_totali);	//Scrivo i minuti
-			lcd.setCursor(2, 1); 
-			lcd.print("       ");	//Scrivo del bianco
-			lcd.setCursor(2, 1);
-			lcd.print(Rad,3);*/
 			break;
 	   }
 		case 18:{
@@ -602,8 +567,6 @@ void display_handle(uint8_t func) {
 			lcd.clear();
 			lcd.setCursor(5,0);
 			lcd.print("Battery");	//Scrivo del bianco
-			//lcd.setCursor(0,1);
-			//lcd.print("                ");	//Scrivo del bianco
 			break;
 	   }
 		case 19:{
@@ -968,6 +931,7 @@ void EEPROM_Init_Read() {
 void QuickSet_Handle() { 
 	// Visualizza e Cambia la modalità di funzionamento
  
+	setting_handle(6);	//Batteria
 	setting_handle(7);	//display settings
 	setting_handle(0);
 	setting_handle(1);
