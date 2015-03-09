@@ -101,6 +101,8 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 			Ottimizzato ulteriormente il codice e liberata ancora un po' di RAM
 			Inserita la grafica per la gestione della batteria. Manca la logica
 			Versione iniziale della logica della batteria
+			Sistemato il controllo batteria da verificare la formula
+			Sistemato il display Settings per visualizzare lo stato della batteria
 
 */
 
@@ -170,8 +172,9 @@ byte batt0[8] = {0b00100,0b11111,0b10001,0b10001,0b10001,0b10001,0b10001,0b11111
 byte batt20[8] = {0b00100,0b11111,0b10001,0b10001,0b10001,0b10001,0b11111,0b11111};
 byte batt40[8] = {0b00100,0b11111,0b10001,0b10001,0b10001,0b11111,0b11111,0b11111};
 byte batt60[8] = {0b00100,0b11111,0b10001,0b10001,0b11111,0b11111,0b11111,0b11111};
-byte batt80[8] = {0b00100,0b11111,0b11111,0b11111,0b11111,0b11111,0b11111,0b11111};
+byte batt80[8] = {0b00100,0b11111,0b10001,0b11111,0b11111,0b11111,0b11111,0b11111};
 byte batt100[8] = {0b00100,0b11111,0b11111,0b11111,0b11111,0b11111,0b11111,0b11111};
+byte battChg[8] = {0b01010,0b01010,0b11111,0b10001,0b10001,0b01110,0b00100,0b00100};
 
 //Conteggio in tempo reale/geiger
 //float CPM	lo eredito
@@ -281,13 +284,14 @@ void setup() {
 void batteryLevelHandle() {
 
 	//(x-2.8)/1.4*100
-	batt_perc = (voltmt1.getVoltage()-2.8)/(1.4*100);
+	batt_perc = ((voltmt1.getVoltage()-2.8)/(1.4*100))*10000;
 	
 	if ((batt_perc >= 0) && (batt_perc < 20)) lcd.createChar(0,batt0);
 	if ((batt_perc >= 20) && (batt_perc < 40)) lcd.createChar(0,batt20);
 	if ((batt_perc >= 40) && (batt_perc < 60)) lcd.createChar(0,batt60);
 	if ((batt_perc >= 60) && (batt_perc < 80)) lcd.createChar(0,batt80);
 	if ((batt_perc >= 80) && (batt_perc <= 100)) lcd.createChar(0,batt100);
+	if (batt_perc > 101) lcd.createChar(0,battChg);
 
 	//lcd.createChar(0,batt60);
 	lcd.setCursor(15, 1);
@@ -567,15 +571,22 @@ void display_handle(uint8_t func) {
 			lcd.clear();
 			lcd.setCursor(5,0);
 			lcd.print("Battery");	//Scrivo del bianco
+
+			lcd.setCursor(0,1);
+			lcd.setCursor(1,1);
+			lcd.print(voltmt1.getVoltage());
+			lcd.setCursor(6,1);
+			lcd.print("V");
+			lcd.setCursor(9,1);
+			lcd.print(batt_perc);
+			lcd.setCursor(12,1);
+			lcd.print("%");
+			batteryLevelHandle();
 			break;
 	   }
 		case 19:{
+			//SPOSTATO SOTTO IL 18
 			//Visualizzazione dello stato della batteria
-			lcd.setCursor(0,1);
-			lcd.setCursor(2,1);
-			lcd.print(voltmt1.getVoltage());
-			lcd.setCursor(10,1);
-			lcd.print(batt_perc);
 			break;
 	   }
 		case 20:{
@@ -845,7 +856,7 @@ _year:
 			delay(500);
 			do {
 				Buzzer();
-				display_handle(19);	// Visualizzo il valore salvato EEPROM
+				display_handle(18);	// Visualizzo il valore salvato EEPROM
 				delay(50);
 				if (digitalRead(KEY_MENU)== LOW) break;
 			}
