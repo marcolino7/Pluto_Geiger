@@ -278,9 +278,20 @@ void setup() {
 }
 
 void batteryLevelHandle() {
-	lcd.createChar(0,batt60);
+
+	//(x-2.8)/1.4*100
+	batt_perc = (voltmt1.getVoltage()-2.8)/(1.4*100);
+	
+	if ((batt_perc >= 0) && (batt_perc < 20)) lcd.createChar(0,batt0);
+	if ((batt_perc >= 20) && (batt_perc < 40)) lcd.createChar(0,batt20);
+	if ((batt_perc >= 40) && (batt_perc < 60)) lcd.createChar(0,batt60);
+	if ((batt_perc >= 60) && (batt_perc < 80)) lcd.createChar(0,batt80);
+	if ((batt_perc >= 80) && (batt_perc <= 100)) lcd.createChar(0,batt100);
+
+	//lcd.createChar(0,batt60);
 	lcd.setCursor(15, 1);
 	lcd.write((uint8_t)0);
+
 }
 
 
@@ -598,10 +609,10 @@ void display_handle(uint8_t func) {
 		case 19:{
 			//Visualizzazione dello stato della batteria
 			lcd.setCursor(0,1);
-			//lcd.print(analogRead(2));	//Scrivo del bianco
-			lcd.setCursor(6,1);
-			//lcd.print((1.1*analogRead(2))/1023);
+			lcd.setCursor(2,1);
 			lcd.print(voltmt1.getVoltage());
+			lcd.setCursor(10,1);
+			lcd.print(batt_perc);
 			break;
 	   }
 		case 20:{
