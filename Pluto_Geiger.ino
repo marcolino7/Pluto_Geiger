@@ -275,7 +275,7 @@ void setup() {
 	//Leggo i set dalla EEPROM
 	EEPROM_Init_Read();
 
-	lcdBacklightHandle(2);	//Gestisco la retroilluminazione
+	lcdBacklightHandle();	//Gestisco la retroilluminazione
 
 }
 
@@ -296,62 +296,42 @@ void batteryLevelHandle() {
 
 }
 
-void BackLightKey_Handle() {
-	//Se viene premuto uno dei 4 tasti e il display non è Off
-	if (((digitalRead(KEY_UP)==LOW) || (digitalRead(KEY_DW)==LOW) || (digitalRead(KEY_SET)==LOW) || (digitalRead(KEY_MENU)==LOW)) && lcd_mode != 0) {
-		lcdBacklightHandle(1);	//accendo il display
-	}
-}
-
-void lcdBacklightHandle(uint8_t func){
-	//func 0=Spegni 1=Accendi 2=Gestisce
-	switch (func) {
-		case 0: { //Spegni
-			lcd.noBacklight();		//Spengo il display
-			lcd_millis = 0;			//Vuoto la variabile
-			lcd_state = 0;			//Display Spento
+void lcdBacklightHandle(){
+	switch (lcd_mode) {
+		case 0: {	//Retroilluminazione spenta
+			if (lcd_state == 1) {
+				lcd.noBacklight();		//Spengo il display
+				lcd_state = 0;			//Display Spento
+			}
 			break;
 		}
-
-		case 1: { //Accendi
-			lcd.backlight();		//Accendo l'illuminazione
-			lcd_millis = millis();  //Salvo l'istante dell'accensione
-			lcd_state = 1;			//Display acceso
+		case 1: {	//Retroilluminazione sempre accesa
+			if (lcd_state == 0) {
+				lcd.backlight();		//Accendo l'illuminazione
+				lcd_state = 1;			//Display acceso
+			}
 			break;
 		}
-
-		case 2: { //Gestisce
-			switch (lcd_mode) {
-				case 0: {	//Retroilluminazione spenta
-					if (lcd_state == 1) {
-						lcd.noBacklight();		//Spengo il display
-						lcd_state = 0;			//Display Spento
-					}
-					break;
-				}
-				case 1: {	//Retroilluminazione sempre accesa
-					if (lcd_state == 0) {
-						lcd.backlight();		//Accendo l'illuminazione
-						lcd_state = 1;			//Display acceso
-					}
-					break;
-				}
-				default: {	//Gestisco la retroilluminazione
-					if (lcd_state == 1 ) {	//Se il display è acceso verifico il tempo
-						if ( (millis() - lcd_millis) > lcd_mode_values[lcd_mode] ) {
-							//se la differenza ta quando si è acceso il backligt e il momento attuale
-							//è superiore al parametro impostato in lcd_mode_values
-							//Spengo il display
-							lcd.noBacklight();		//Spengo il display
-							lcd_millis = 0;			//Vuoto la variabile
-							lcd_state = 0;			//Display Spento
-						}
-					}
-					break;
+		default: {	//Gestisco la retroilluminazione
+			//Se viene premuto uno dei 4 tasti e il display non è Off	
+			if ((digitalRead(KEY_UP)==LOW) || (digitalRead(KEY_DW)==LOW) || (digitalRead(KEY_SET)==LOW) || (digitalRead(KEY_MENU)==LOW)) {
+				lcd.backlight();		//Accendo l'illuminazione
+				lcd_state = 1;			//Display acceso
+				lcd_millis = millis();	//Mi segno l'istante in cui ho acceso il display
+			}
+						
+			if (lcd_state == 1 ) {	//Se il display è acceso verifico il tempo
+				if ( (millis() - lcd_millis) > lcd_mode_values[lcd_mode] ) {
+					//se la differenza ta quando si è acceso il backligt e il momento attuale
+					//è superiore al parametro impostato in lcd_mode_values
+					//Spengo il display
+					lcd.noBacklight();		//Spengo il display
+					lcd_millis = 0;			//Vuoto la variabile
+					lcd_state = 0;			//Display Spento
 				}
 			}
+			break;
 		}
-
 	}
 }
 
@@ -662,11 +642,12 @@ void setting_handle(uint8_t func) {
 			while (digitalRead(KEY_SET)== HIGH);
 			break;
 		}
-		case 2: { //Modalità Scaler o Ratemeter
+		case 2: { //Modalità Geiger, Scaler o Ratemeter
 			display_handle(7);
 			delay(500);
 			do {
 				Buzzer();
+				lcdBacklightHandle();
 				display_handle(7);	// Visualizzo il valore salvato EEPROM
 				delay(50);
 				if (digitalRead(KEY_UP)== HIGH && mode < 3) mode++;
@@ -883,8 +864,8 @@ _year:
 						EEPROM.write(0x05,lcd_mode);    // Scrive Set della Base Tempi       
 					}
 					//Gestisco il display in base al valore scelto
-					if (lcd_mode == 0) lcdBacklightHandle(0);
-					else lcdBacklightHandle(1);
+					if (lcd_mode == 0) lcdBacklightHandle();
+					else lcdBacklightHandle();
 				}
 
 
@@ -1005,7 +986,7 @@ void MainSettingsRecap() {
 void loop(){
 	//Loop Principale
 	geiger_handle();
-	lcdBacklightHandle(2);	//Gestico la retroilluminazione
+	lcdBacklightHandle();	//Gestico la retroilluminazione
 }
 
 void geiger_handle() {
@@ -1170,6 +1151,7 @@ void key_wait(){
       VarServInt=digitalRead(KEY_SET);
 	  VarServInt1=digitalRead(KEY_MENU);
 	  Buzzer();
+	  lcdBacklightHandle();
   }  
   while (VarServInt==HIGH && VarServInt1==HIGH );
 }
