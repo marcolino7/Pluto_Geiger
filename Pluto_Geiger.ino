@@ -296,7 +296,12 @@ void batteryLevelHandle() {
 
 }
 
-
+void BackLightKey_Handle() {
+	//Se viene premuto uno dei 4 tasti e il display non è Off
+	if (((digitalRead(KEY_UP)==LOW) || (digitalRead(KEY_DW)==LOW) || (digitalRead(KEY_SET)==LOW) || (digitalRead(KEY_MENU)==LOW)) && lcd_mode != 0) {
+		lcdBacklightHandle(1);	//accendo il display
+	}
+}
 
 void lcdBacklightHandle(uint8_t func){
 	//func 0=Spegni 1=Accendi 2=Gestisce
@@ -598,6 +603,8 @@ void display_handle(uint8_t func) {
 	}
 }
 
+
+
 void setting_handle(uint8_t func) {
 	//Gestice le impostazioni
 	switch (func) {
@@ -620,8 +627,6 @@ void setting_handle(uint8_t func) {
 				if (digitalRead(KEY_SET)== LOW) {
 					delay(50);
 					if (digitalRead(KEY_SET)== LOW) {
-						//lcd.setCursor(6, 1); 
-						//lcd.print("    ");
 						EEPROMWriteInt(0x01,Sens);     // Scrive Sensibilità Sonda nella EEPROM
 					}
 				}
