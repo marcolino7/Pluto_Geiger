@@ -284,7 +284,7 @@ void setup() {
 void batteryLevelHandle() {
 
 	//(x-2.8)/1.4*100
-	batt_perc = ((voltmt1.getVoltage()-2.8)/(1.4*100))*10000;
+	batt_perc = ((voltmt1.getVoltage()-2.8)/1.4)*100;
 	
 	if ((batt_perc >= 0) && (batt_perc < 20)) lcd.createChar(0,batt0);
 	if ((batt_perc >= 20) && (batt_perc < 40)) lcd.createChar(0,batt20);
