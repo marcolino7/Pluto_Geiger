@@ -103,6 +103,8 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 			Versione iniziale della logica della batteria
 			Sistemato il controllo batteria da verificare la formula
 			Sistemato il display Settings per visualizzare lo stato della batteria
+0.10	-	        Gestione display completa dei timeout, rimane solo da fare la schermata di scrittura
+			Impostazioni Timeout Retroilluminazione a 10,20,30,60,120 secondi
 
 */
 
@@ -128,7 +130,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 #include <Voltmetro.h>			//Libreria che calcola il voltaggio
 
 //Versione Firmware
-const String fw_version = "0.9";
+const String fw_version = "0.10";
 
 //Inizializzo l'LCD via I2C
 LiquidCrystal_I2C lcd(lcd_addr,16,2);	//inizializzo il display 16 col 2 righe
@@ -159,8 +161,8 @@ uint8_t geiger_status = 3;	//Stato dell'apparecchio per gestire i loop
 
 unsigned long lcd_millis = 0;		//Contiene i millis() a cui si è acceso il display
 boolean lcd_state = 0;				//Contiene lo stato della illuminazione del display
-const char* lcd_desc[] = {"Off","On","10 Sec","20 Sec","30 Sec"};
-uint16_t	lcd_mode_values[] = {0,0,10000,20000,30000};
+const char* lcd_desc[] = {"Off","On","10","20","30","60","120"};
+uint16_t	lcd_mode_values[] = {0,0,10000,20000,30000,60000,120000};
 uint8_t lcd_mode = 0;				//0=Off 
 									//1=On 
 									//2=10 Sec 
@@ -182,6 +184,7 @@ unsigned long sec_totali = 0;
 unsigned long min_totali = 0;
 boolean b500ms = false;
 boolean b100ms = false;
+//boolean b250ms = false;
 long inizio = 0;	//contiene la variabile millis() al momento dell'inizio del conteggio
 
 
@@ -576,8 +579,16 @@ void display_handle(uint8_t func) {
 			lcd.clear();
 			lcd.setCursor(4,0);
 			lcd.print("BackLight");	//Scrivo del bianco
-			lcd.setCursor(4, 1); 
-			lcd.print(lcd_desc[lcd_mode]);
+			if (lcd_mode < 2) {
+				//On o OFF
+				lcd.setCursor(4, 1);
+				lcd.print(lcd_desc[lcd_mode]);
+			} else {
+				lcd.setCursor(4, 1); 
+				lcd.print(lcd_desc[lcd_mode]);
+				lcd.setCursor (8,1);
+				lcd.print("sec");
+			}
 			break;
 	   }
 	}
@@ -593,6 +604,7 @@ void setting_handle(uint8_t func) {
 			delay(500);
 			do {
 				Buzzer();
+				lcdBacklightHandle();
 				display_handle(1);
 				if (digitalRead(KEY_UP)== HIGH && Sens<64000) {
 					if (Sens < 10000) Sens=Sens+50;
@@ -619,6 +631,7 @@ void setting_handle(uint8_t func) {
 			delay(500);
 			do {
 				Buzzer();
+				lcdBacklightHandle();
 				BaseTempi= Tempo[SetTemp];
 				Molt= K[SetTemp];
 				lcd.setCursor(6, 1); 
@@ -671,6 +684,7 @@ void setting_handle(uint8_t func) {
 			delay(500);
 			do {
 				Buzzer();
+				lcdBacklightHandle();
 				display_handle(10);	// Visualizzo il valore salvato EEPROM
 				delay(50);
 				if (digitalRead(KEY_UP)== HIGH && count_units < 3) count_units++;
@@ -699,6 +713,7 @@ void setting_handle(uint8_t func) {
 			timeedit_hh=1;
 			do {
 				Buzzer();
+				lcdBacklightHandle();
 				display_handle(13);	// Visualizzo il valore dell'RTC
 				delay(50);
 				if (digitalRead(KEY_UP)== HIGH && hour < 25) hour++;
@@ -718,6 +733,7 @@ _minute:
 			timeedit_mm=1;	//modifico il dipslay per editare i minuti
 			do {
 				Buzzer();
+				lcdBacklightHandle();
 				display_handle(13);	// Visualizzo il valore dell'RTC
 				delay(50);
 				if (digitalRead(KEY_UP)== HIGH && minute < 60) minute++;
@@ -737,6 +753,7 @@ _second:
 			timeedit_ss=1;	//modifico il dipslay per editare i secondi
 			do {
 				Buzzer();
+				lcdBacklightHandle();
 				display_handle(13);	// Visualizzo il valore dell'RTC
 				delay(50);
 				if (digitalRead(KEY_UP)== HIGH && second < 60) second++;
@@ -772,6 +789,7 @@ _second:
 			timeedit_hh=1;
 			do {
 				Buzzer();
+				lcdBacklightHandle();
 				display_handle(15);	// Visualizzo il valore dell'RTC
 				delay(50);
 				if (digitalRead(KEY_UP)== HIGH && day < 31) day++;
@@ -791,6 +809,7 @@ _month:
 			timeedit_mm=1;	//modifico il dipslay per editare i minuti
 			do {
 				Buzzer();
+				lcdBacklightHandle();
 				display_handle(15);	// Visualizzo il valore dell'RTC
 				delay(50);
 				if (digitalRead(KEY_UP)== HIGH && month < 12) month++;
@@ -810,6 +829,7 @@ _year:
 			timeedit_ss=1;	//modifico il dipslay per editare i secondi
 			do {
 				Buzzer();
+				lcdBacklightHandle();
 				display_handle(15);	// Visualizzo il valore dell'RTC
 				delay(50);
 				if (digitalRead(KEY_UP)== HIGH && year < 2500) year++;
@@ -839,7 +859,8 @@ _year:
 			delay(500);
 			do {
 				Buzzer();
-				display_handle(18);	// Visualizzo il valore salvato EEPROM
+				lcdBacklightHandle();
+				display_handle(18);	
 				delay(50);
 				if (digitalRead(KEY_MENU)== LOW) break;
 			}
@@ -851,29 +872,22 @@ _year:
 			delay(500);
 			do {
 				Buzzer();
+				lcdBacklightHandle();
 				display_handle(20);	// Visualizzo il valore salvato EEPROM
 				delay(50);
-				if (digitalRead(KEY_UP)== HIGH && lcd_mode < 5) lcd_mode++;
+				if (digitalRead(KEY_UP)== HIGH && lcd_mode < 7) lcd_mode++;
 				if (digitalRead(KEY_DW)== HIGH && lcd_mode > 0) lcd_mode--;
 				if (digitalRead(KEY_MENU)== LOW) break;
 				if (digitalRead(KEY_SET)== LOW) {
 					delay(50);
 					if (digitalRead(KEY_SET)== LOW) {
-						//lcd.setCursor(4, 1); 
-						//lcd.print("      ");
 						EEPROM.write(0x05,lcd_mode);    // Scrive Set della Base Tempi       
 					}
-					//Gestisco il display in base al valore scelto
-					if (lcd_mode == 0) lcdBacklightHandle();
-					else lcdBacklightHandle();
 				}
-
-
 			}
 			while (digitalRead(KEY_SET)== HIGH);
 			break;
 		}
-
 	}
 }
 
@@ -974,11 +988,11 @@ void MainSettingsRecap() {
 	delay(100);
 		//Gestisco il menù avanzato con la pressione prolungata del tasto menù
 		if (digitalRead(KEY_MENU) == LOW){
-		delay(800);
-		if (digitalRead(KEY_MENU) == LOW){
-			//Gestire il menù esteso
-			geiger_status = 4;
-		}
+			delay(800);
+			if (digitalRead(KEY_MENU) == LOW){
+				//Gestire il menù esteso
+				geiger_status = 4;
+			}
 	}
 }
 
@@ -1037,6 +1051,7 @@ void pulse_count(){
 		inizio = millis();	//Momento iniziale del conteggio
 		do{
 			Buzzer();									//Suono il buzzer se necessario
+			lcdBacklightHandle();						//Gestisco la Retro Illuminazione
 			if (b500ms==true){							//Faccio le operazioni ogni 500ms 
 				sec_totali = (millis()-inizio) / 1000;	//Secondi totali dall'inizio del conteggio
 				min_totali = sec_totali/60;				//Minuti totali, servono per il display
@@ -1074,6 +1089,7 @@ void pulse_count(){
 		//display_handle(3);	//Display per il conteggio
 		do {
 			Buzzer();
+			lcdBacklightHandle();	//Gestisco la Retro Illuminazione
 			// Visualizza conteggio in corso 10 volte ogni secondo
 			//if (millis()%100 < 1) display_handle(4); //Display in conteggio
 			//Visualizzo il conteggio ogni 500 ms
