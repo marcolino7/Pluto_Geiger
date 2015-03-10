@@ -134,40 +134,40 @@ const String fw_version = "0.9";
 LiquidCrystal_I2C lcd(lcd_addr,16,2);	//inizializzo il display 16 col 2 righe
 
 
-uint8_t SetTemp=0;       // Indice della Base Tempi
-unsigned long TotImp=0;        // Totale degli impulsi
-uint16_t BaseTempi=10;    // * * * Base tempi in secondi
-unsigned long TempoMax=0;      // Termine conteggio
-uint8_t VarServInt=0;     // Variabile di servizio
-uint8_t VarServInt1=0;     // Variabile di servizio uno
-unsigned int Sens=1000;      // Sensibilità in mR/h
-float CPM=0;          // CPM
-float Molt=6;         // * * * Moltiplicatore fra CP e CPM (dipende da BaseTempi)
-float Rad=0;		  // Radioattività espressa in mR/h
+uint8_t SetTemp=0;				// Indice della Base Tempi
+unsigned long TotImp=0;			// Totale degli impulsi
+uint16_t BaseTempi=10;			// * * * Base tempi in secondi
+unsigned long TempoMax=0;		// Termine conteggio
+uint8_t VarServInt=0;			// Variabile di servizio
+uint8_t VarServInt1=0;			// Variabile di servizio uno
+unsigned int Sens=1000;			// Sensibilità in mR/h
+float CPM=0;					// CPM
+float Molt=6;					// * * * Moltiplicatore fra CP e CPM (dipende da BaseTempi)
+float Rad=0;					// Radioattività espressa in mR/h
 int beep_flag=0;
-uint8_t mode = 0;			//0 = One Count 1 = Loop Count 2 = Geiger
-uint8_t count_units = 0;			//Unità di misura 0=mR/h 1=uR/h 2=uSv/h
+uint8_t mode = 0;				//0 = One Count 1 = Loop Count 2 = Geiger
+uint8_t count_units = 0;		//Unità di misura 0=mR/h 1=uR/h 2=uSv/h
 char* units_desc[] = {"mR/h","uR/h","uSv/h"};
-int T2count=0;			//Counter che viene incrementato dal timer 2
+int T2count=0;					//Counter che viene incrementato dal timer 2
 boolean lampeggio=0;			//variabile che si inverte ogni 500ms e serve per far lampeggiare le cose
 
 uint8_t geiger_status = 3;	//Stato dell'apparecchio per gestire i loop
-						//0 Setup Iniziale Parametri
-						//1 Conteggio
-						//2 Visualizzazione Risultati
-						//3 Riassunto dei settaggi - Schermata iniziale
+							//0 Setup Iniziale Parametri
+							//1 Conteggio
+							//2 Visualizzazione Risultati
+							//3 Riassunto dei settaggi - Schermata iniziale
 
-unsigned long lcd_millis = 0;	//Contiene i millis() a cui si è acceso il display
+unsigned long lcd_millis = 0;		//Contiene i millis() a cui si è acceso il display
 boolean lcd_state = 0;				//Contiene lo stato della illuminazione del display
 const char* lcd_desc[] = {"Off","On","10 Sec","20 Sec","30 Sec"};
 uint16_t	lcd_mode_values[] = {0,0,10000,20000,30000};
-uint8_t lcd_mode = 0;		//0=Off 
-						//1=On 
-						//2=10 Sec 
-						//3=20 Sec 
-						//4=30 Sec
+uint8_t lcd_mode = 0;				//0=Off 
+									//1=On 
+									//2=10 Sec 
+									//3=20 Sec 
+									//4=30 Sec
 
-//Carattere con il simbilo della bartteria scarica
+//Carattere con il simbolo del livello della batteria
 byte batt0[8] = {0b00100,0b11111,0b10001,0b10001,0b10001,0b10001,0b10001,0b11111};
 byte batt20[8] = {0b00100,0b11111,0b10001,0b10001,0b10001,0b10001,0b11111,0b11111};
 byte batt40[8] = {0b00100,0b11111,0b10001,0b10001,0b10001,0b11111,0b11111,0b11111};
@@ -183,7 +183,7 @@ unsigned long min_totali = 0;
 boolean b500ms = false;
 boolean b100ms = false;
 long inizio = 0;	//contiene la variabile millis() al momento dell'inizio del conteggio
-//long TotImp=0; lo eredito
+
 
 //File su SD
 File sd_file;
@@ -191,19 +191,17 @@ const int chipSelect = 10;
 boolean sd_card_ok = false;
 
 //Real Time Clock
-	RTC_DS1307 RTC; //Dichiaro l'oggetto RTC
-    //Array di cifre con lo zero davanti, per gestire la visualizzazione sul display
-    const char* CifreConZero[] = {"00", "01", "02", "03", "04", "05", "06", "07", "08", "09"};
-	volatile uint8_t hour, minute, second, month, day;
-	volatile uint16_t year;
-	uint8_t timeedit_hh=0,timeedit_mm=0,timeedit_ss=0;	//Variabile che servono a modificare il display in edit
+RTC_DS1307 RTC;			//Dichiaro l'oggetto RTC
+//Array di cifre con lo zero davanti, per gestire la visualizzazione sul display
+const char* CifreConZero[] = {"00", "01", "02", "03", "04", "05", "06", "07", "08", "09"};
+volatile uint8_t hour, minute, second, month, day;
+volatile uint16_t year;
+uint8_t timeedit_hh=0,timeedit_mm=0,timeedit_ss=0;	//Variabile che servono a modificare il display in edit
 
 
 // Base Tempi ---------------
-uint8_t Tempo[6]={
-  10,30,60,180,600,1800};
-float K[6]={
-  6,2,1,.333,.1,.033};
+uint8_t Tempo[6]={10,30,60,180,600,1800};
+float K[6]={6,2,1,.333,.1,.033};
 
 //Variabili che Gestiscono il Voltmetro con la mia libreria
 // Voltmetro(pin,R1,R2.VRef)
@@ -277,7 +275,7 @@ void setup() {
 	//Leggo i set dalla EEPROM
 	EEPROM_Init_Read();
 
-	lcdBacklightHandle(1);	//Accendo la retro illuminazione
+	lcdBacklightHandle(2);	//Gestisco la retroilluminazione
 
 }
 
