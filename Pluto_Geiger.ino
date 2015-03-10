@@ -281,7 +281,7 @@ void setup() {
 
 void batteryLevelHandle() {
 
-	//(x-2.8)/1.4*100
+	//batt_perc=((x-VMin)/(VMax-VMin))*100
 	batt_perc = ((voltmt1.getVoltage()-2.8)/1.4)*100;
 	
 	if ((batt_perc >= 0) && (batt_perc < 20)) lcd.createChar(0,batt0);
@@ -289,9 +289,8 @@ void batteryLevelHandle() {
 	if ((batt_perc >= 40) && (batt_perc < 60)) lcd.createChar(0,batt60);
 	if ((batt_perc >= 60) && (batt_perc < 80)) lcd.createChar(0,batt80);
 	if ((batt_perc >= 80) && (batt_perc <= 100)) lcd.createChar(0,batt100);
-	if (batt_perc > 101) lcd.createChar(0,battChg);
+	//if (batt_perc > 101) lcd.createChar(0,battChg);
 
-	//lcd.createChar(0,batt60);
 	lcd.setCursor(15, 1);
 	lcd.write((uint8_t)0);
 
@@ -1038,8 +1037,8 @@ void pulse_count(){
 	//mode == 2 Geiger
 
 		inizio = 0;		//azzero le variabili
-		sec_totali = 0;		//azzero le variabili	
-		min_totali = 0;		//azzero le variabili
+		sec_totali = 0;
+		min_totali = 0;
 		CPM = 0;
 		TotImp = 0;
 		Rad = 0;
@@ -1049,11 +1048,10 @@ void pulse_count(){
 	if (mode==2){
 		//Conteggio Geiger
 		delay(500);
-		//display_handle(16);		//Visualizzo la parte statica del display
 		inizio = millis();	//Momento iniziale del conteggio
 		do{
-			Buzzer();			//Suono il buzzer se necessario
-			if (b500ms==true){	//Faccio le operazioni ogni 500ms 
+			Buzzer();									//Suono il buzzer se necessario
+			if (b500ms==true){							//Faccio le operazioni ogni 500ms 
 				sec_totali = (millis()-inizio) / 1000;	//Secondi totali dall'inizio del conteggio
 				min_totali = sec_totali/60;				//Minuti totali, servono per il display
 				CPM = (float(TotImp)/float(sec_totali));
@@ -1075,7 +1073,7 @@ void pulse_count(){
 				display_handle(16);		//Visualizzo sul display la parte statica e dinamica
 				b100ms = false;
 			}
-			//Se premo il tasto menù dirante il conteggio scrivo il log
+			//Se premo il tasto menù durante il conteggio scrivo il log
 			if (digitalRead(KEY_MENU)==LOW) {
 				delay(200); //debounc
 				if (digitalRead(KEY_MENU)==LOW) Log_Write();
