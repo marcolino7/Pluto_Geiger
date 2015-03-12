@@ -177,6 +177,7 @@ byte batt60[8] = {0b00100,0b11111,0b10001,0b10001,0b11111,0b11111,0b11111,0b1111
 byte batt80[8] = {0b00100,0b11111,0b10001,0b11111,0b11111,0b11111,0b11111,0b11111};
 byte batt100[8] = {0b00100,0b11111,0b11111,0b11111,0b11111,0b11111,0b11111,0b11111};
 byte battChg[8] = {0b01010,0b01010,0b11111,0b10001,0b10001,0b01110,0b00100,0b00100};
+byte battEmpty[8] = {0b00100,0b11111,0b10001,0b11011,0b10101,0b11011,0b10001,0b11111};
 
 //Conteggio in tempo reale/geiger
 //float CPM	lo eredito
@@ -287,7 +288,8 @@ void batteryLevelHandle() {
 	//batt_perc=((x-VMin)/(VMax-VMin))*100
 	batt_perc = ((voltmt1.getVoltage()-2.8)/1.4)*100;
 	
-	if ((batt_perc >= 0) && (batt_perc < 20)) lcd.createChar(0,batt0);
+        if (batt_perc < 5) lcd.createChar(0,battEmpty);
+	if ((batt_perc >= 5) && (batt_perc < 20)) lcd.createChar(0,batt0);
 	if ((batt_perc >= 20) && (batt_perc < 40)) lcd.createChar(0,batt20);
 	if ((batt_perc >= 40) && (batt_perc < 60)) lcd.createChar(0,batt60);
 	if ((batt_perc >= 60) && (batt_perc < 80)) lcd.createChar(0,batt80);
