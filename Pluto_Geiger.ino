@@ -103,8 +103,9 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 			Versione iniziale della logica della batteria
 			Sistemato il controllo batteria da verificare la formula
 			Sistemato il display Settings per visualizzare lo stato della batteria
-0.10	-	        Gestione display completa dei timeout, rimane solo da fare la schermata di scrittura
+0.10	-	Gestione display completa dei timeout, rimane solo da fare la schermata di scrittura
 			Impostazioni Timeout Retroilluminazione a 10,20,30,60,120 secondi
+			Aggiunti 2 livelli di warning alla batteria al 5% e al 2%
 
 */
 
@@ -178,6 +179,7 @@ byte batt80[8] = {0b00100,0b11111,0b10001,0b11111,0b11111,0b11111,0b11111,0b1111
 byte batt100[8] = {0b00100,0b11111,0b11111,0b11111,0b11111,0b11111,0b11111,0b11111};
 byte battChg[8] = {0b01010,0b01010,0b11111,0b10001,0b10001,0b01110,0b00100,0b00100};
 byte battEmpty[8] = {0b00100,0b11111,0b10001,0b11011,0b10101,0b11011,0b10001,0b11111};
+byte battAlert[8] = {0b10001,0b10001,0b01010,0b00100,0b00100,0b01010,0b10001,0b10001};
 
 //Conteggio in tempo reale/geiger
 //float CPM	lo eredito
@@ -288,7 +290,8 @@ void batteryLevelHandle() {
 	//batt_perc=((x-VMin)/(VMax-VMin))*100
 	batt_perc = ((voltmt1.getVoltage()-2.8)/1.4)*100;
 	
-        if (batt_perc < 5) lcd.createChar(0,battEmpty);
+    if (batt_perc < 2) lcd.createChar(0,battAlert);
+	if ((batt_perc >= 2) && (batt_perc < 5)) lcd.createChar(0,battEmpty);
 	if ((batt_perc >= 5) && (batt_perc < 20)) lcd.createChar(0,batt0);
 	if ((batt_perc >= 20) && (batt_perc < 40)) lcd.createChar(0,batt20);
 	if ((batt_perc >= 40) && (batt_perc < 60)) lcd.createChar(0,batt60);
