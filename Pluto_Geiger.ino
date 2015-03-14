@@ -106,6 +106,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 0.10	-	Gestione display completa dei timeout, rimane solo da fare la schermata di scrittura
 			Impostazioni Timeout Retroilluminazione a 10,20,30,60,120 secondi
 			Aggiunti 2 livelli di warning alla batteria al 5% e al 2%
+			Corretto il simbolo di batteria oltre il 100%
 
 */
 
@@ -177,7 +178,7 @@ byte batt40[8] = {0b00100,0b11111,0b10001,0b10001,0b10001,0b11111,0b11111,0b1111
 byte batt60[8] = {0b00100,0b11111,0b10001,0b10001,0b11111,0b11111,0b11111,0b11111};
 byte batt80[8] = {0b00100,0b11111,0b10001,0b11111,0b11111,0b11111,0b11111,0b11111};
 byte batt100[8] = {0b00100,0b11111,0b11111,0b11111,0b11111,0b11111,0b11111,0b11111};
-byte battChg[8] = {0b01010,0b01010,0b11111,0b10001,0b10001,0b01110,0b00100,0b00100};
+//byte battChg[8] = {0b01010,0b01010,0b11111,0b10001,0b10001,0b01110,0b00100,0b00100};
 byte battEmpty[8] = {0b00100,0b11111,0b10001,0b11011,0b10101,0b11011,0b10001,0b11111};
 byte battAlert[8] = {0b10001,0b10001,0b01010,0b00100,0b00100,0b01010,0b10001,0b10001};
 
@@ -296,7 +297,8 @@ void batteryLevelHandle() {
 	if ((batt_perc >= 20) && (batt_perc < 40)) lcd.createChar(0,batt20);
 	if ((batt_perc >= 40) && (batt_perc < 60)) lcd.createChar(0,batt60);
 	if ((batt_perc >= 60) && (batt_perc < 80)) lcd.createChar(0,batt80);
-	if ((batt_perc >= 80) && (batt_perc <= 100)) lcd.createChar(0,batt100);
+	if (batt_perc >= 80) lcd.createChar(0,batt100);
+	//if ((batt_perc >= 80) && (batt_perc <= 100)) lcd.createChar(0,batt100);
 	//if (batt_perc > 101) lcd.createChar(0,battChg);
 
 	lcd.setCursor(15, 1);
