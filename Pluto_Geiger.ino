@@ -107,6 +107,8 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 			Impostazioni Timeout Retroilluminazione a 10,20,30,60,120 secondi
 			Aggiunti 2 livelli di warning alla batteria al 5% e al 2%
 			Corretto il simbolo di batteria oltre il 100%
+			Aggiunte maggiori sensibilità sul settaggio della sonda
+			Aggiunto il segno della corrente quando la batteria è a zero
 
 */
 
@@ -178,7 +180,7 @@ byte batt40[8] = {0b00100,0b11111,0b10001,0b10001,0b10001,0b11111,0b11111,0b1111
 byte batt60[8] = {0b00100,0b11111,0b10001,0b10001,0b11111,0b11111,0b11111,0b11111};
 byte batt80[8] = {0b00100,0b11111,0b10001,0b11111,0b11111,0b11111,0b11111,0b11111};
 byte batt100[8] = {0b00100,0b11111,0b11111,0b11111,0b11111,0b11111,0b11111,0b11111};
-//byte battChg[8] = {0b01010,0b01010,0b11111,0b10001,0b10001,0b01110,0b00100,0b00100};
+byte battPWR[8] = {0b01010,0b01010,0b11111,0b10001,0b10001,0b01110,0b00100,0b00100};
 byte battEmpty[8] = {0b00100,0b11111,0b10001,0b11011,0b10101,0b11011,0b10001,0b11111};
 byte battAlert[8] = {0b10001,0b10001,0b01010,0b00100,0b00100,0b01010,0b10001,0b10001};
 
@@ -288,19 +290,22 @@ void setup() {
 
 void batteryLevelHandle() {
 
-	//batt_perc=((x-VMin)/(VMax-VMin))*100
-	batt_perc = ((voltmt1.getVoltage()-2.8)/1.4)*100;
+	if (voltmt1.getVoltage() == 0.00) {
+		 lcd.createChar(0,battPWR);
+	} else {
+		//batt_perc=((x-VMin)/(VMax-VMin))*100
+		batt_perc = ((voltmt1.getVoltage()-2.8)/1.4)*100;
 	
-    if (batt_perc < 2) lcd.createChar(0,battAlert);
-	if ((batt_perc >= 2) && (batt_perc < 5)) lcd.createChar(0,battEmpty);
-	if ((batt_perc >= 5) && (batt_perc < 20)) lcd.createChar(0,batt0);
-	if ((batt_perc >= 20) && (batt_perc < 40)) lcd.createChar(0,batt20);
-	if ((batt_perc >= 40) && (batt_perc < 60)) lcd.createChar(0,batt60);
-	if ((batt_perc >= 60) && (batt_perc < 80)) lcd.createChar(0,batt80);
-	if (batt_perc >= 80) lcd.createChar(0,batt100);
-	//if ((batt_perc >= 80) && (batt_perc <= 100)) lcd.createChar(0,batt100);
-	//if (batt_perc > 101) lcd.createChar(0,battChg);
-
+		if (batt_perc < 2) lcd.createChar(0,battAlert);
+		if ((batt_perc >= 2) && (batt_perc < 5)) lcd.createChar(0,battEmpty);
+		if ((batt_perc >= 5) && (batt_perc < 20)) lcd.createChar(0,batt0);
+		if ((batt_perc >= 20) && (batt_perc < 40)) lcd.createChar(0,batt20);
+		if ((batt_perc >= 40) && (batt_perc < 60)) lcd.createChar(0,batt60);
+		if ((batt_perc >= 60) && (batt_perc < 80)) lcd.createChar(0,batt80);
+		if (batt_perc >= 80) lcd.createChar(0,batt100);
+		//if ((batt_perc >= 80) && (batt_perc <= 100)) lcd.createChar(0,batt100);
+		//if (batt_perc > 101) lcd.createChar(0,battChg);
+	}
 	lcd.setCursor(15, 1);
 	lcd.write((uint8_t)0);
 
@@ -614,12 +619,16 @@ void setting_handle(uint8_t func) {
 				lcdBacklightHandle();
 				display_handle(1);
 				if (digitalRead(KEY_UP)== HIGH && Sens<64000) {
-					if (Sens < 10000) Sens=Sens+50;
-					else Sens=Sens+1000;      
+					if (Sens <= 10) Sens=Sens+1;
+					if ((Sens > 10) && (Sens <= 1000)) Sens=Sens+10;
+					if ((Sens > 1000) && (Sens <= 10000)) Sens=Sens+50;
+					if (Sens > 10000) Sens=Sens+1000;      
 				}
-				if (digitalRead(KEY_DW)== HIGH && Sens >= 100) { 
-					if (Sens < 10000) Sens=Sens-50;
-					else Sens=Sens-1000;
+				if (digitalRead(KEY_DW)== HIGH && Sens >= 0) { 
+					if (Sens <= 10) Sens=Sens-1;
+					if ((Sens > 10) && (Sens <= 1000)) Sens=Sens-10;
+					if ((Sens > 1000) && (Sens <= 10000)) Sens=Sens-50;
+					if (Sens > 10000) Sens=Sens-1000;      
 				}
 				if (digitalRead(KEY_MENU)== LOW) break;
 				delay(50);
