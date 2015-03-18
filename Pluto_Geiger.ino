@@ -136,6 +136,8 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 #include <RTClib.h>				//Libreria DS1307 RTC
 #include <LiquidCrystal_I2C.h>	//Libreria LCD I2C con PCF8574AP - http://hmario.home.xs4all.nl/arduino/LiquidCrystal_I2C/
 #include <Voltmetro.h>			//Libreria che calcola il voltaggio
+#include <avr/pgmspace.h>		//Libreria per salvare le variabili stringa nella FLASH
+
 
 //Versione Firmware
 const String fw_version = "0.11";
@@ -228,6 +230,19 @@ float K[6]={6,2,1,.333,.1,.033};
 // Voltmetro(pin,R1,R2.VRef)
 Voltmetro voltmt1(2,330000.0,100000.0,1.1);
 uint8_t batt_perc = 0;
+
+
+//Variabili per il display salvate nella flash
+const char string_0[] PROGMEM = "String 0";   
+const char string_1[] PROGMEM = "String 1";
+const char string_2[] PROGMEM = "String 2";
+const char string_3[] PROGMEM = "String 3";
+const char string_4[] PROGMEM = "String 4";
+const char string_5[] PROGMEM = "String 5";
+// Then set up a table to refer to your strings.
+const char* const string_table[] PROGMEM = {string_0, string_1, string_2, string_3, string_4, string_5};
+char buffer[30];    // make sure this is large enough for the largest string it must hold
+
 
 
 void setup() {
