@@ -113,6 +113,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 0.11	-	Aggiunto il settaggio e la gestione del Pre-Set della sensibilità delle sonde
 			Aggiunte le sonde LND e quella dall'SV500
 			Ottimizzato il codice eliminando stringhe per libebrare RAM
+0.12	-	Spostate alcune stringhe nella FLASH per liberare RAM
 
 */
 
@@ -140,7 +141,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 
 
 //Versione Firmware
-const String fw_version = "0.11";
+const String fw_version = "0.12";
 
 //Inizializzo l'LCD via I2C
 LiquidCrystal_I2C lcd(lcd_addr,16,2);	//inizializzo il display 16 col 2 righe
@@ -206,12 +207,10 @@ boolean b100ms = false;
 //boolean b250ms = false;
 long inizio = 0;	//contiene la variabile millis() al momento dell'inizio del conteggio
 
-
 //File su SD
 File sd_file;
 const int chipSelect = 10;
 boolean sd_card_ok = false;
-
 
 //Real Time Clock
 RTC_DS1307 RTC;			//Dichiaro l'oggetto RTC
@@ -220,7 +219,6 @@ const char* CifreConZero[] = {"00", "01", "02", "03", "04", "05", "06", "07", "0
 volatile uint8_t hour, minute, second, month, day;
 volatile uint16_t year;
 uint8_t timeedit_hh=0,timeedit_mm=0,timeedit_ss=0;	//Variabile che servono a modificare il display in edit
-
 
 // Base Tempi ---------------
 uint8_t Tempo[6]={10,30,60,180,600,1800};
@@ -231,20 +229,14 @@ float K[6]={6,2,1,.333,.1,.033};
 Voltmetro voltmt1(2,330000.0,100000.0,1.1);
 uint8_t batt_perc = 0;
 
-
 //Variabili per il display salvate nella flash
 prog_char string_0[] PROGMEM = "Pluto Geiger";   
 prog_char string_1[] PROGMEM = "Prb CPM x mR/h";
-
+prog_char string_2[] PROGMEM = "Prb Preset";
+prog_char string_3[] PROGMEM = "BackLight";
 // Then set up a table to refer to your strings.
-PROGMEM const char *string_table[] =	   // change "string_table" name to suit
-{   
-  string_0,
-  string_1
-};
-
+PROGMEM const char *string_table[] = {string_0, string_1, string_2, string_3};
 char buffer[30];    // make sure this is large enough for the largest string it must hold
-
 
 
 void setup() {
@@ -412,7 +404,7 @@ void display_handle(uint8_t func) {
 		case 0: {	//Splash Screen
 			lcd.clear();
 			lcd.setCursor(2, 0); 
-			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[0])));
+			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[0]))); //Pluto Geiger
 			lcd.print(buffer);
 			//lcd.print("Pluto Geiger");
 			lcd.setCursor(6, 1); 
@@ -423,7 +415,7 @@ void display_handle(uint8_t func) {
 		case 1: {	//Setup CPM Sonda
 			lcd.clear();
 			lcd.setCursor(2, 0); 
-			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[1])));
+			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[1]))); //Prb CPM x mR/h
 			lcd.print(buffer);
 			//lcd.print("Prb CPM x mR/h");
 			lcd.setCursor(6, 1);
@@ -630,7 +622,9 @@ void display_handle(uint8_t func) {
 			//Probe Preset
 			lcd.clear();
 			lcd.setCursor(4, 0); 
-			lcd.print("Prb Preset");
+			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[2])));	//Prb Preset
+			lcd.print(buffer);
+			//lcd.print("Prb Preset");
 			lcd.setCursor(5, 1);
 			lcd.print(probe_preset_list[probe_preset]);
 			break;
@@ -639,7 +633,9 @@ void display_handle(uint8_t func) {
 			//Impostazioni del Display Schermo Statico
 			lcd.clear();
 			lcd.setCursor(4,0);
-			lcd.print("BackLight");	//Scrivo del bianco
+			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[3])));	//BackLight
+			lcd.print(buffer);
+			//lcd.print("BackLight");	
 			if (lcd_mode < 2) {
 				//On o OFF
 				lcd.setCursor(4, 1);
