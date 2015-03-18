@@ -182,7 +182,6 @@ uint8_t lcd_mode = 0;				//0=Off
 //Sonda
 uint16_t	probe_preset_list[] = {0,3600,500};		//Array con i Preset
 uint8_t		probe_preset = 0;						//Preset selezionato, 0=nessun preset
-uint8_t		max_probe_preset = 3;					//Massimo valore selezionabile nei settings
 unsigned int SensCustom=0;							//Sensibilità della sonda custom impostata nei parametri
 unsigned int Sens=1000;								// Sensibilità della sonda in CPM in mR/h usata nei conteggi
 
@@ -234,8 +233,31 @@ prog_char string_0[] PROGMEM = "Pluto Geiger";
 prog_char string_1[] PROGMEM = "Prb CPM x mR/h";
 prog_char string_2[] PROGMEM = "Prb Preset";
 prog_char string_3[] PROGMEM = "BackLight";
+prog_char string_4[] PROGMEM = "Battery";
+prog_char string_5[] PROGMEM = "Count Unit";
+prog_char string_6[] PROGMEM = "Counter Mode";
+prog_char string_7[] PROGMEM = "One Count";
+prog_char string_8[] PROGMEM = "Loop Count";
+prog_char string_9[] PROGMEM = "Geiger";
+prog_char string_10[] PROGMEM = "sec";
+prog_char string_11[] PROGMEM = "SD Fail";
+prog_char string_12[] PROGMEM = "SD OK";
+prog_char string_13[] PROGMEM = "Time sec";
+prog_char string_14[] PROGMEM = "Time";
+prog_char string_15[] PROGMEM = "Pulse";
+prog_char string_16[] PROGMEM = "CPM";
+prog_char string_17[] PROGMEM = ":";
+prog_char string_18[] PROGMEM = "Prb:";
+prog_char string_19[] PROGMEM = "Sec:";
+prog_char string_20[] PROGMEM = "Time";
+prog_char string_21[] PROGMEM = "Date";
+prog_char string_22[] PROGMEM = "Mn:";
+
+
 // Then set up a table to refer to your strings.
-PROGMEM const char *string_table[] = {string_0, string_1, string_2, string_3};
+PROGMEM const char *string_table[] = {string_0, string_1, string_2, string_3, string_4, string_5, string_6, string_7, string_8, string_9,
+										string_10, string_11, string_12, string_13, string_14, string_15, string_16, string_17, string_18, string_19,
+										string_20, string_21, string_22};
 char buffer[30];    // make sure this is large enough for the largest string it must hold
 
 
@@ -274,11 +296,15 @@ void setup() {
 	lcd.setCursor(0, 1); 
 	if (!SD.begin(chipSelect)) {
 		lcd.setCursor(4, 1); 
-		lcd.print("SD Fail");
+		strcpy_P(buffer, (char*)pgm_read_word(&(string_table[11]))); //SD Fail
+		lcd.print(buffer);
+		//lcd.print("SD Fail");
 		sd_card_ok = false;
 	}else{
 		lcd.setCursor(5, 1);
-		lcd.print("SD OK");
+		strcpy_P(buffer, (char*)pgm_read_word(&(string_table[12]))); //SD OK
+		lcd.print(buffer);
+		//lcd.print("SD OK");
 		sd_card_ok = true;
 	}
 	delay(1500);
@@ -419,14 +445,16 @@ void display_handle(uint8_t func) {
 			lcd.print(buffer);
 			//lcd.print("Prb CPM x mR/h");
 			lcd.setCursor(6, 1);
-			lcd.print(Sens);
+			lcd.print(SensCustom);
 			break;
 		}
 
 		case 2: {	//Setup Base tempi
 			lcd.clear();
 			lcd.setCursor(4, 0); 
-			lcd.print("TIME sec");
+			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[13]))); //Time sec
+			lcd.print(buffer);
+			//lcd.print("TIME sec");
 			break;
 		}
 
@@ -435,11 +463,17 @@ void display_handle(uint8_t func) {
 			// Display presente durante il conteggio
 			lcd.clear();
 			lcd.setCursor(0, 0); 
-			lcd.print("Time");
+			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[14]))); //Time
+			lcd.print(buffer);
+			//lcd.print("Time");
 			lcd.setCursor(12, 0);
-			lcd.print("sec");
+			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[10]))); //sec
+			lcd.print(buffer);
+			//lcd.print("sec");
 			lcd.setCursor(0, 1); 
-			lcd.print("Pulse");
+			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[15]))); //Pulse
+			lcd.print(buffer);
+			//lcd.print("Pulse");
 			batteryLevelHandle();
 
 			lcd.setCursor(6,0);
@@ -459,7 +493,9 @@ void display_handle(uint8_t func) {
 			// Display presente alla fine del conteggio
 			lcd.clear();
 			lcd.setCursor(0, 0); 
-			lcd.print("CPM");
+			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[16]))); //CPM
+			lcd.print(buffer);
+			//lcd.print("CPM");
 
 			lcd.setCursor(0, 1);
 			lcd.print(units_desc[count_units]);
@@ -479,18 +515,26 @@ void display_handle(uint8_t func) {
 			//Aspetto del display durante il setup della modalità operativa
 			lcd.clear();
 			lcd.setCursor(3,0);
-			lcd.print("Count Mode");
+			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[6]))); //Count Mode
+			lcd.print(buffer);
+			//lcd.print("Count Mode");
 			if (mode == 0) {
 				lcd.setCursor(4,1);
-				lcd.print("One Count");
+				strcpy_P(buffer, (char*)pgm_read_word(&(string_table[7]))); //One Count
+				lcd.print(buffer);
+				//lcd.print("One Count");
 			}
 			if (mode == 1) {
 				lcd.setCursor(3,1);
-				lcd.print("Loop Count");
+				strcpy_P(buffer, (char*)pgm_read_word(&(string_table[8]))); //Loop Count
+				lcd.print(buffer);
+				//lcd.print("Loop Count");
 			}
 			if (mode == 2) {
 				lcd.setCursor(5,1);
-				lcd.print("Geiger");
+				strcpy_P(buffer, (char*)pgm_read_word(&(string_table[9]))); //Geiger
+				lcd.print(buffer);
+				//lcd.print("Geiger");
 			}
 			break;
 	   }
@@ -502,7 +546,9 @@ void display_handle(uint8_t func) {
 			//Aspetto del display durante il setup delle Unità di misura
 			lcd.clear();
 			lcd.setCursor(3,0);
-			lcd.print("Count Unit");
+			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[1]))); //Count Unit
+			lcd.print(buffer);
+			//lcd.print("Count Unit");
 			break;
 	   }
 		case 10:{
@@ -516,7 +562,9 @@ void display_handle(uint8_t func) {
 			//Schermo di riepilogo iniziale
 			lcd.clear();
 			lcd.setCursor(0,0);
-			lcd.print("Prb:");
+			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[18]))); //Prb:
+			lcd.print(buffer);
+			//lcd.print("Prb:");
 			lcd.setCursor(4,0);
 			lcd.print(Sens);
 			lcd.setCursor(10,0);
@@ -525,7 +573,9 @@ void display_handle(uint8_t func) {
 			if (mode == 2) lcd.print("Geig");
 			//Seconda Riga
 			lcd.setCursor(0,1);
-			lcd.print("Sec:");
+			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[19]))); //Sec:
+			lcd.print(buffer);
+			//lcd.print("Sec:");
 			lcd.setCursor(4,1);
 			lcd.print(BaseTempi,DEC);
 			lcd.setCursor(10,1);
@@ -538,7 +588,9 @@ void display_handle(uint8_t func) {
 			//Valore del settaggio durante il setup dell'Ora
 			lcd.clear();
 			lcd.setCursor(7,0);
-			lcd.print("Time");
+			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[20]))); //Time
+			lcd.print(buffer);
+			//lcd.print("Time");
 			break;
 	   }
 		case 13:{
@@ -559,7 +611,9 @@ void display_handle(uint8_t func) {
 			//Valore del settaggio durante il setup della data
 			lcd.clear();
 			lcd.setCursor(7,0);
-			lcd.print("Date");
+			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[21]))); //Date
+			lcd.print(buffer);
+			//lcd.print("Date");
 			break;
 	   }
 		case 15:{
@@ -580,9 +634,16 @@ void display_handle(uint8_t func) {
 			//Visualizzazione del display per il conteggio in tempo reale Geiger
 			lcd.clear();
 			lcd.setCursor(0,0);
-			lcd.print("CPM:");
+			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[16]))); //CPM
+			lcd.print(buffer);
+			//lcd.print("CPM:");
+			lcd.setCursor(3,0);
+			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[17]))); //:
+			lcd.print(buffer);
 			lcd.setCursor(9,0);
-			lcd.print("Mn:");
+			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[22]))); //Mn:
+			lcd.print(buffer);
+			//lcd.print("Mn:");
 			lcd.setCursor(9,1);
 			lcd.print(units_desc[count_units]);
 			batteryLevelHandle();
@@ -603,8 +664,10 @@ void display_handle(uint8_t func) {
 		case 18:{
 			//Visualizzazione del display dello stato della batteria
 			lcd.clear();
-			lcd.setCursor(8,0);
-			lcd.print("Batt");
+			lcd.setCursor(4,0);
+			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[4]))); //Battery
+			lcd.print(buffer);
+			//lcd.print("Batt");
 
 			lcd.setCursor(0,1);
 			lcd.setCursor(1,1);
@@ -644,7 +707,9 @@ void display_handle(uint8_t func) {
 				lcd.setCursor(4, 1); 
 				lcd.print(lcd_desc[lcd_mode]);
 				lcd.setCursor (8,1);
-				lcd.print("sec");
+				strcpy_P(buffer, (char*)pgm_read_word(&(string_table[10]))); //sec
+				lcd.print(buffer);
+				//lcd.print("sec");
 			}
 			break;
 	   }
@@ -959,8 +1024,8 @@ _year:
 				lcdBacklightHandle();
 				display_handle(19);	// Visualizzo il valore salvato EEPROM
 				delay(50);
-				if (digitalRead(KEY_UP)== HIGH && lcd_mode < max_probe_preset) probe_preset++;
-				if (digitalRead(KEY_DW)== HIGH && lcd_mode > 0) probe_preset--;
+				if (digitalRead(KEY_UP)== HIGH && probe_preset < 3) probe_preset++;
+				if (digitalRead(KEY_DW)== HIGH && probe_preset > 0) probe_preset--;
 				if (digitalRead(KEY_MENU)== LOW) break;
 				if (digitalRead(KEY_SET)== LOW) {
 					delay(50);
