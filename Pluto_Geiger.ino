@@ -35,6 +35,7 @@ Posizioni EEPROM
 0x03	-	mode 0=One Count 1=Loop Counts 2=Geiger
 0x04	-	Unità di misura 0=mR/h 1=uR/h 2=uSv/h
 0x05	-	Display Mode
+0x06	-	Probe Preset Position
 
 Tensione Batteria
 Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 330kk e 100k
@@ -109,6 +110,9 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 			Corretto il simbolo di batteria oltre il 100%
 			Aggiunte maggiori sensibilità sul settaggio della sonda
 			Aggiunto il segno della corrente quando la batteria è a zero
+0.11	-	Aggiunto il settaggio e la gestione del Pre-Set della sensibilità delle sonde
+			Aggiunte le sonde LND e quella dall'SV500
+			Ottimizzato il codice eliminando stringhe per libebrare RAM
 
 */
 
@@ -146,7 +150,6 @@ uint16_t BaseTempi=10;			// * * * Base tempi in secondi
 unsigned long TempoMax=0;		// Termine conteggio
 uint8_t VarServInt=0;			// Variabile di servizio
 uint8_t VarServInt1=0;			// Variabile di servizio uno
-unsigned int Sens=1000;			// Sensibilità in mR/h
 float CPM=0;					// CPM
 float Molt=6;					// * * * Moltiplicatore fra CP e CPM (dipende da BaseTempi)
 float Rad=0;					// Radioattività espressa in mR/h
@@ -173,6 +176,14 @@ uint8_t lcd_mode = 0;				//0=Off
 									//3=20 Sec 
 									//4=30 Sec
 
+//Sonda
+uint16_t	probe_preset_list[] = {0,3600,500};		//Array con i Preset
+uint8_t		probe_preset = 0;						//Preset selezionato, 0=nessun preset
+uint8_t		max_probe_preset = 3;					//Massimo valore selezionabile nei settings
+unsigned int SensCustom=0;							//Sensibilità della sonda custom impostata nei parametri
+unsigned int Sens=1000;								// Sensibilità della sonda in CPM in mR/h usata nei conteggi
+
+
 //Carattere con il simbolo del livello della batteria
 byte batt0[8] = {0b00100,0b11111,0b10001,0b10001,0b10001,0b10001,0b10001,0b11111};
 byte batt20[8] = {0b00100,0b11111,0b10001,0b10001,0b10001,0b10001,0b11111,0b11111};
@@ -198,6 +209,7 @@ long inizio = 0;	//contiene la variabile millis() al momento dell'inizio del con
 File sd_file;
 const int chipSelect = 10;
 boolean sd_card_ok = false;
+
 
 //Real Time Clock
 RTC_DS1307 RTC;			//Dichiaro l'oggetto RTC
@@ -286,7 +298,19 @@ void setup() {
 
 	lcdBacklightHandle();	//Gestisco la retroilluminazione
 
+	setProbeSens();			//Imposto la sensibilità della sonda
 }
+
+
+void setProbeSens() {
+	//Routine che viene chiamata per impostare la sensibilità della sonda
+	if (probe_preset == 0) {
+		Sens = SensCustom;
+	} else {
+		Sens = probe_preset_list[probe_preset];
+	}
+}
+
 
 void batteryLevelHandle() {
 
@@ -373,14 +397,14 @@ void display_handle(uint8_t func) {
 			lcd.setCursor(2, 0); 
 			lcd.print("Pluto Geiger");
 			lcd.setCursor(6, 1); 
-			lcd.print("V."+fw_version);
+			lcd.print("v"+fw_version);
 			break;
 		}
 		
 		case 1: {	//Setup CPM Sonda
 			lcd.clear();
-			lcd.setCursor(0, 0); 
-			lcd.print("Probe CPM x mR/h");
+			lcd.setCursor(2, 0); 
+			lcd.print("Prb CPM x mR/h");
 			lcd.setCursor(6, 1);
 			lcd.print(Sens);
 			break;
@@ -500,8 +524,8 @@ void display_handle(uint8_t func) {
 		case 12:{
 			//Valore del settaggio durante il setup dell'Ora
 			lcd.clear();
-			lcd.setCursor(3,0);
-			lcd.print("System Time");
+			lcd.setCursor(7,0);
+			lcd.print("Time");
 			break;
 	   }
 		case 13:{
@@ -521,8 +545,8 @@ void display_handle(uint8_t func) {
 		case 14:{
 			//Valore del settaggio durante il setup della data
 			lcd.clear();
-			lcd.setCursor(3,0);
-			lcd.print("System Date");
+			lcd.setCursor(7,0);
+			lcd.print("Date");
 			break;
 	   }
 		case 15:{
@@ -566,8 +590,8 @@ void display_handle(uint8_t func) {
 		case 18:{
 			//Visualizzazione del display dello stato della batteria
 			lcd.clear();
-			lcd.setCursor(5,0);
-			lcd.print("Battery");	//Scrivo del bianco
+			lcd.setCursor(8,0);
+			lcd.print("Batt");
 
 			lcd.setCursor(0,1);
 			lcd.setCursor(1,1);
@@ -582,8 +606,12 @@ void display_handle(uint8_t func) {
 			break;
 	   }
 		case 19:{
-			//SPOSTATO SOTTO IL 18
-			//Visualizzazione dello stato della batteria
+			//Probe Preset
+			lcd.clear();
+			lcd.setCursor(4, 0); 
+			lcd.print("Prb Preset");
+			lcd.setCursor(5, 1);
+			lcd.print(probe_preset_list[probe_preset]);
 			break;
 	   }
 		case 20:{
@@ -619,24 +647,25 @@ void setting_handle(uint8_t func) {
 				lcdBacklightHandle();
 				display_handle(1);
 				if (digitalRead(KEY_UP)== HIGH && Sens<64000) {
-					if (Sens <= 10) Sens=Sens+1;
-					if ((Sens > 10) && (Sens <= 1000)) Sens=Sens+10;
-					if ((Sens > 1000) && (Sens <= 10000)) Sens=Sens+50;
-					if (Sens > 10000) Sens=Sens+1000;      
+					if (SensCustom <= 10) SensCustom=SensCustom+1;
+					if ((SensCustom > 10) && (SensCustom <= 1000)) SensCustom=SensCustom+10;
+					if ((SensCustom > 1000) && (SensCustom <= 10000)) SensCustom=SensCustom+50;
+					if (SensCustom > 10000) SensCustom=SensCustom+1000;      
 				}
 				if (digitalRead(KEY_DW)== HIGH && Sens >= 0) { 
-					if (Sens <= 10) Sens=Sens-1;
-					if ((Sens > 10) && (Sens <= 1000)) Sens=Sens-10;
-					if ((Sens > 1000) && (Sens <= 10000)) Sens=Sens-50;
-					if (Sens > 10000) Sens=Sens-1000;      
+					if (SensCustom <= 10) SensCustom=SensCustom-1;
+					if ((SensCustom > 10) && (SensCustom <= 1000)) SensCustom=SensCustom-10;
+					if ((SensCustom > 1000) && (SensCustom <= 10000)) SensCustom=SensCustom-50;
+					if (SensCustom > 10000) SensCustom=SensCustom-1000;      
 				}
 				if (digitalRead(KEY_MENU)== LOW) break;
 				delay(50);
 				if (digitalRead(KEY_SET)== LOW) {
 					delay(50);
 					if (digitalRead(KEY_SET)== LOW) {
-						EEPROMWriteInt(0x01,Sens);     // Scrive Sensibilità Sonda nella EEPROM
+						EEPROMWriteInt(0x01,SensCustom);     // Scrive Sensibilità Sonda nella EEPROM
 					}
+				setProbeSens();			//Imposto la sensibilità della sonda
 				}
 			}
 			while (digitalRead(KEY_SET)== HIGH);
@@ -904,6 +933,29 @@ _year:
 			while (digitalRead(KEY_SET)== HIGH);
 			break;
 		}
+
+		case 8: { //Preset Sonda
+			display_handle(19);
+			delay(500);
+			do {
+				Buzzer();
+				lcdBacklightHandle();
+				display_handle(19);	// Visualizzo il valore salvato EEPROM
+				delay(50);
+				if (digitalRead(KEY_UP)== HIGH && lcd_mode < max_probe_preset) probe_preset++;
+				if (digitalRead(KEY_DW)== HIGH && lcd_mode > 0) probe_preset--;
+				if (digitalRead(KEY_MENU)== LOW) break;
+				if (digitalRead(KEY_SET)== LOW) {
+					delay(50);
+					if (digitalRead(KEY_SET)== LOW) {
+						EEPROM.write(0x06,probe_preset);    // Scrive Set della Base Tempi       
+					}
+					setProbeSens();			//Imposto la sensibilità della sonda
+				}
+			}
+			while (digitalRead(KEY_SET)== HIGH);
+			break;
+		}
 	}
 }
 
@@ -937,9 +989,9 @@ void EEPROM_Init_Read() {
 	if (SetTemp==255) SetTemp = 0;	// Se la EEPROM è vuota, imposto 10 secondi
 	BaseTempi= Tempo[SetTemp];		// Imposto la base tempi recuperandola dall'array
 	
-	Sens=EEPROMReadInt(0x01);		// Legge Sensibilità Sonda
-	if (Sens==0xFF00) Sens = 3500;	// Se la EEPROM è vuota a 32767 (Integer), imposto la sensibilità a 3500
-	if (Sens==0xFF) Sens = 200;	// Se la EEPROM è vuota a 255 (Byte), imposto la sensibilità a 200
+	SensCustom=EEPROMReadInt(0x01);		// Legge Sensibilità Sonda
+	if (SensCustom==0xFF00) Sens = 3500;	// Se la EEPROM è vuota a 32767 (Integer), imposto la sensibilità a 3500
+	if (SensCustom==0xFF) Sens = 200;	// Se la EEPROM è vuota a 255 (Byte), imposto la sensibilità a 200
 
 	mode=EEPROM.read(0x03);					// Modalità Scaler, Ratemeter o Geiger
 	if (mode > 2) mode = 0;					// Se la EEPROM è vuota, imposto a One Count
@@ -950,6 +1002,9 @@ void EEPROM_Init_Read() {
 	lcd_mode=EEPROM.read(0x05);				//Modalita dell'LCD
 	if (count_units==255) lcd_mode=1;	//Se la EEPROM è vuota, imposto il display sempre acceso
 
+	lcd_mode=EEPROM.read(0x06);				//Modalita dell'LCD
+	if (count_units==255) probe_preset=0;	//Se la EEPROM è vuota, imposto il display sempre acceso
+
 }
 
 void QuickSet_Handle() { 
@@ -957,12 +1012,10 @@ void QuickSet_Handle() {
  
 	setting_handle(6);	//Batteria
 	setting_handle(7);	//display settings
-	setting_handle(0);
-	setting_handle(1);
-	setting_handle(2);
-	setting_handle(3);
-	//setting_handle(4);
-	//setting_handle(5);
+	setting_handle(8);	//Sensibilità Preset della Sonda
+	setting_handle(1);	//Base Tempi
+	setting_handle(2);	//Modalità
+	setting_handle(3);	//Unità di Misura
 
 
 	Sensibilita:    
@@ -978,15 +1031,16 @@ void QuickSet_Handle() {
 
 void FullSet_Handle() { 
 	// Visualizza e Cambia la modalità di funzionamento
- 
-	setting_handle(0);
-	setting_handle(1);
-	setting_handle(2);
-	setting_handle(3);
-	setting_handle(4);
-	setting_handle(5);
-	setting_handle(6);
-	setting_handle(7);
+
+	setting_handle(8);	//Sensibilità Preset della sonda
+	setting_handle(0);	//Sensibilità Custom della sonda
+	setting_handle(1);	//Base Tempi
+	setting_handle(2);	//Modalità
+	setting_handle(3);	//Unità di Misura
+	setting_handle(4);	//Ora
+	setting_handle(5);	//Data
+	setting_handle(6);	//Batteria
+	setting_handle(7);	//Display Settings
 
    	TotImp=0;
 	geiger_status = 3; //Dopo il setup Iniziale Torno al riepilogo
