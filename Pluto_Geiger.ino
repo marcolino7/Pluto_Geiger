@@ -233,14 +233,16 @@ uint8_t batt_perc = 0;
 
 
 //Variabili per il display salvate nella flash
-const char string_0[] PROGMEM = "String 0";   
-const char string_1[] PROGMEM = "String 1";
-const char string_2[] PROGMEM = "String 2";
-const char string_3[] PROGMEM = "String 3";
-const char string_4[] PROGMEM = "String 4";
-const char string_5[] PROGMEM = "String 5";
+prog_char string_0[] PROGMEM = "Pluto Geiger";   
+prog_char string_1[] PROGMEM = "Prb CPM x mR/h";
+
 // Then set up a table to refer to your strings.
-const char* const string_table[] PROGMEM = {string_0, string_1, string_2, string_3, string_4, string_5};
+PROGMEM const char *string_table[] =	   // change "string_table" name to suit
+{   
+  string_0,
+  string_1
+};
+
 char buffer[30];    // make sure this is large enough for the largest string it must hold
 
 
@@ -410,7 +412,9 @@ void display_handle(uint8_t func) {
 		case 0: {	//Splash Screen
 			lcd.clear();
 			lcd.setCursor(2, 0); 
-			lcd.print("Pluto Geiger");
+			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[0])));
+			lcd.print(buffer);
+			//lcd.print("Pluto Geiger");
 			lcd.setCursor(6, 1); 
 			lcd.print("v"+fw_version);
 			break;
@@ -419,7 +423,9 @@ void display_handle(uint8_t func) {
 		case 1: {	//Setup CPM Sonda
 			lcd.clear();
 			lcd.setCursor(2, 0); 
-			lcd.print("Prb CPM x mR/h");
+			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[1])));
+			lcd.print(buffer);
+			//lcd.print("Prb CPM x mR/h");
 			lcd.setCursor(6, 1);
 			lcd.print(Sens);
 			break;
