@@ -138,7 +138,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 #include <Voltmetro.h>			//Libreria che calcola il voltaggio
 
 //Versione Firmware
-const String fw_version = "0.10";
+const String fw_version = "0.11";
 
 //Inizializzo l'LCD via I2C
 LiquidCrystal_I2C lcd(lcd_addr,16,2);	//inizializzo il display 16 col 2 righe
