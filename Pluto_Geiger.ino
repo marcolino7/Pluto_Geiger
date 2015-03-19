@@ -1,7 +1,5 @@
 /*
   Pluto Geiger
-  -- #BUILD:8 --
-
  
   Basato sul progetto originale di Andrea Bosi alias Enotria
   e modifiche di Dario Tortato - Marconmeteo di radioactivity forum

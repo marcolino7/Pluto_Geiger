@@ -1,0 +1,21 @@
+
+
+uint8_t count_units = 0;		
+char* units_desc[] = {"mR/h","uR/h","uSv/h"};
+
+					
+						
+	R/h =  (CPM/Sens)/1000
+	mR/h = CPM/Sens;
+	uR/h = (CPM/Sens)*1000;
+	
+	
+	s/h =  ((CPM/Sens)*10)/1000000
+	mS/h = ((CPM/Sens)*10)/1000
+	uS/h = (CPM/Sens)*10
+	
+	m ,001
+	u ,000001
+	n ,000000001
+	
+	
