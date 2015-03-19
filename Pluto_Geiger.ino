@@ -157,8 +157,16 @@ float Molt=6;					// * * * Moltiplicatore fra CP e CPM (dipende da BaseTempi)
 float Rad=0;					// Radioattività espressa in mR/h
 int beep_flag=0;
 uint8_t mode = 0;				//0 = One Count 1 = Loop Count 2 = Geiger
+
+//Unità di Misura
 uint8_t count_units = 0;		//Unità di misura 0=mR/h 1=uR/h 2=uSv/h
 char* units_desc[] = {"mR/h","uR/h","uSv/h"};
+
+uint8_t c_unit = 0;												//Unità di misura 0=Sievert, 1=Röntgen
+const char *unit_set_desc[] PROGMEM = {"Sievert","Röntgen"};	//Nomi delle misure per i settings
+const char *unit_sv_desc[] PROGMEM = {"Sv/h","mSv/h","uSv/h",};	//Misure in Sievert
+const char *unit_rt_desc[] PROGMEM = {"R/h","mR/h","uR/h",};	//Misure in Röntgen
+
 int T2count=0;					//Counter che viene incrementato dal timer 2
 boolean lampeggio=0;			//variabile che si inverte ogni 500ms e serve per far lampeggiare le cose
 
@@ -257,7 +265,7 @@ prog_char string_22[] PROGMEM = "Mn:";
 PROGMEM const char *string_table[] = {string_0, string_1, string_2, string_3, string_4, string_5, string_6, string_7, string_8, string_9,
 										string_10, string_11, string_12, string_13, string_14, string_15, string_16, string_17, string_18, string_19,
 										string_20, string_21, string_22};
-char buffer[30];    // make sure this is large enough for the largest string it must hold
+char buffer[20];    // make sure this is large enough for the largest string it must hold
 
 
 void setup() {
