@@ -112,6 +112,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 			Aggiunte le sonde LND e quella dall'SV500
 			Ottimizzato il codice eliminando stringhe per libebrare RAM
 0.12	-	Spostate alcune stringhe nella FLASH per liberare RAM
+0.13	-	Iniziato lo Sviluppo della Scala Automatica
 
 */
 
@@ -139,7 +140,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 
 
 //Versione Firmware
-const String fw_version = "0.12";
+const String fw_version = "0.13";
 
 //Inizializzo l'LCD via I2C
 LiquidCrystal_I2C lcd(lcd_addr,16,2);	//inizializzo il display 16 col 2 righe
