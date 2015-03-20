@@ -114,6 +114,8 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 0.12	-	Spostate alcune stringhe nella FLASH per liberare RAM
 0.13	-	Iniziato lo Sviluppo della Scala Automatica
 			Scala automatica implementata prima versione da testare
+			Spostate le stringhe della SD in Progmem
+
 
 */
 
@@ -313,18 +315,11 @@ void setup() {
 	lcd.clear();
 	lcd.setCursor(0, 1); 
 	if (!SD.begin(chipSelect)) {
-		lcd.setCursor(4, 1); 
-		strcpy_P(buffer, (char*)pgm_read_word(&(string_table[11]))); //SD Fail
-		lcd.print(buffer);
-		//lcd.print("SD Fail");
 		sd_card_ok = false;
 	}else{
-		lcd.setCursor(5, 1);
-		strcpy_P(buffer, (char*)pgm_read_word(&(string_table[12]))); //SD OK
-		lcd.print(buffer);
-		//lcd.print("SD OK");
 		sd_card_ok = true;
 	}
+	display_handle(4);
 	delay(1500);
 
 	//Inizializzo il bus I2C
@@ -524,7 +519,20 @@ void display_handle(uint8_t func) {
 		}
 
 		case 4: {
-			//PORTATO NEL 3
+			//SD CARD Check
+			lcd.clear();
+			lcd.setCursor(2, 0); 
+			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[0]))); //Pluto Geiger
+			lcd.print(buffer);
+			//lcd.print("Pluto Geiger");
+			if (sd_card_ok) {
+				lcd.setCursor(5, 1); 
+				strcpy_P(buffer, (char*)pgm_read_word(&(string_table[12]))); //SD OK
+			}else{
+				lcd.setCursor(5, 1);
+				strcpy_P(buffer, (char*)pgm_read_word(&(string_table[11]))); //SD Fail
+			}
+			lcd.print(buffer);
 			break;
 	    }
 
@@ -734,7 +742,7 @@ void display_handle(uint8_t func) {
 			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[2])));	//Prb Preset
 			lcd.print(buffer);
 			//lcd.print("Prb Preset");
-			lcd.setCursor(5, 1);
+			lcd.setCursor(7, 1);
 			lcd.print(probe_preset_list[probe_preset]);
 			break;
 	   }
