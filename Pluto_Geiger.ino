@@ -1200,6 +1200,13 @@ void geiger_handle() {
 	}
 }
 
+float getDoseMultiplier(float dose) {
+	// In base alla dose calcolo la scala
+	if (dose < 10) return 1;				// micro
+	else if (dose < 10000) return 0.001;	// milli
+	else return 0.000001;					// unità intera
+ }
+
 void pulse_count(){
 
 	//mode == 0 One Count
@@ -1227,17 +1234,17 @@ void pulse_count(){
 				min_totali = sec_totali/60;				//Minuti totali, servono per il display
 				CPM = (float(TotImp)/float(sec_totali));
 				CPM = CPM*60;							//CPM totali dall'inizio del conteggio
-				switch (count_units){					//In base all'unità di misura, conteggio il valore
-				  case 0:
-						Rad=CPM/Sens;            
-						break;
-				  case 1:
-						Rad=(CPM/Sens)*1000;
-						break;
-				  case 2:
+				//Unità di misura 0=Sievert 1=Röntgen
+				switch (c_unit){					//In base all'unità di misura, conteggio il valore in scala micro
+				  case 0:	//Sievert
 						Rad=(CPM/Sens)*10;
 						break;
+				  case 1:	//Röntgen
+						Rad=(CPM/Sens)*1000;
+						break;
 				}
+				Rad=Rad*getDoseMultiplier(Rad); //In base al valore calcolato applico la Scala
+
 				b500ms=false;	//Resetto la variabile dell'interrupt ogni 500ms
 			}
 			if (b100ms == true){		//aggiorno il display ogni 100ms
@@ -1290,20 +1297,16 @@ void end_count() {
 	CPM=TotImp*Molt;
 	sei();
 
-	//Unità di misura 0=mR/h 1=uR/h 2=uSv/h
-	//Rad=CPM/Sens*10;
-
-	switch (count_units){
-      case 0:
-            Rad=CPM/Sens;            
-            break;
-      case 1:
-            Rad=(CPM/Sens)*1000;
-            break;
-      case 2:
-            Rad=(CPM/Sens)*10;
-            break;
-     } 
+	//Unità di misura 0=Sievert 1=Röntgen
+	switch (c_unit){					//In base all'unità di misura, conteggio il valore in scala micro
+		case 0:	//Sievert
+			Rad=(CPM/Sens)*10;
+			break;
+		case 1:	//Röntgen
+			Rad=(CPM/Sens)*1000;
+			break;
+	}
+	Rad=Rad*getDoseMultiplier(Rad);		//In base al valore calcolato applico la Scala
 
 	display_handle(5);
 	display_handle(6);  
