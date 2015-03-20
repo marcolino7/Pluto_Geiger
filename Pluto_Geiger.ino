@@ -565,13 +565,15 @@ void display_handle(uint8_t func) {
 			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[1]))); //Count Unit
 			lcd.print(buffer);
 			//lcd.print("Count Unit");
+			
+			//Unità di misura 0=Sievert 1=Röntgen
+			lcd.setCursor(4,1);
+			strcpy_P(buffer, (char*)pgm_read_word(&(unit_set_desc[c_unit])));
+			lcd.print(buffer);
 			break;
 	   }
 		case 10:{
-			//Valore del settaggio durante il setup della
-			//Unità di misura 0=mR/h 1=uR/h 2=uSv/h
-			lcd.setCursor(5,1);
-			lcd.print(units_desc[count_units]);
+			//SPOSTATO NEL 9
 			break;
 	   }
 		case 11:{
@@ -828,10 +830,10 @@ void setting_handle(uint8_t func) {
 			do {
 				Buzzer();
 				lcdBacklightHandle();
-				display_handle(10);	// Visualizzo il valore salvato EEPROM
+				display_handle(9);	// Visualizzo il valore salvato EEPROM
 				delay(50);
-				if (digitalRead(KEY_UP)== HIGH && count_units < 3) count_units++;
-				if (digitalRead(KEY_DW)== HIGH && count_units > 0) count_units--;
+				if (digitalRead(KEY_UP)== HIGH && c_unit < 2) c_unit++;
+				if (digitalRead(KEY_DW)== HIGH && c_unit > 0) c_unit--;
 				if (digitalRead(KEY_MENU)== LOW) break;
 				delay(50);
 				if (digitalRead(KEY_SET)== LOW) {
@@ -839,7 +841,7 @@ void setting_handle(uint8_t func) {
 					if (digitalRead(KEY_SET)== LOW) {
 						//lcd.setCursor(6, 1); 
 						//lcd.print("    ");
-						EEPROM.write(0x04,count_units);    // Scrive Set della Base Tempi       
+						EEPROM.write(0x04,c_unit);    // Scrive Set della Base Tempi       
 					}
 				}
 			}
