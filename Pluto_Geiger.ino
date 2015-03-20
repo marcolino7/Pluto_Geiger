@@ -1350,11 +1350,13 @@ void Log_Write(){
 		delay(50);
 		sd_file.print(now.hour(),DEC);
 		delay(50);
-		sd_file.print(":");
+		strcpy_P(buffer, (char*)pgm_read_word(&(string_table[2])));
+		sd_file.print(buffer); // :
 		delay(50);
 		sd_file.print(now.minute(),DEC);
 		delay(50);
-		sd_file.print(":");
+		strcpy_P(buffer, (char*)pgm_read_word(&(string_table[2])));
+		sd_file.print(buffer); // :
 		delay(50);
 		sd_file.print(now.second(),DEC);
 		delay(50);
