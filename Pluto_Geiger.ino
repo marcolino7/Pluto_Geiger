@@ -1,9 +1,8 @@
 /*
   Pluto Geiger
  
-  Basato sul progetto originale di Andrea Bosi alias Enotria http://spazioinwind.libero.it/andrea_bosi/appunti/2010/geig_enotria.htm
-  e modifiche di Dario Tortato - Marconmeteo di radioactivity forum 
-  Spezzoni di codice di https://github.com/radhoo per la scala automatica Presi dal suo uRADMonitor https://github.com/radhoo/uradmonitor_kit1/blob/master/code/uRADMonitor.cpp
+  Basato sul progetto originale di Andrea Bosi alias Enotria
+  e modifiche di Dario Tortato - Marconmeteo di radioactivity forum
 
 Assegnazione PIN
 0		- Seriale RX
@@ -32,7 +31,7 @@ Posizioni EEPROM
 0x01	-	Sensibilità Sonda int
 0x02	-	Sensibilità Sonda int
 0x03	-	mode 0=One Count 1=Loop Counts 2=Geiger
-0x04	-	Unità di misura 0=Sievert 1=Röntgen
+0x04	-	Unità di misura 0=mR/h 1=uR/h 2=uSv/h
 0x05	-	Display Mode
 0x06	-	Probe Preset Position
 
@@ -114,6 +113,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 			Ottimizzato il codice eliminando stringhe per libebrare RAM
 0.12	-	Spostate alcune stringhe nella FLASH per liberare RAM
 0.13	-	Iniziato lo Sviluppo della Scala Automatica
+			Scala automatica implementata prima versione da testare
 
 */
 
@@ -164,9 +164,17 @@ uint8_t mode = 0;				//0 = One Count 1 = Loop Count 2 = Geiger
 //char* units_desc[] = {"mR/h","uR/h","uSv/h"};
 
 uint8_t c_unit = 0;												//Unità di misura 0=Sievert, 1=Röntgen
-const char *unit_set_desc[] PROGMEM = {"Sievert","Röntgen"};	//Nomi delle misure per i settings
-const char *unit_sv_desc[] PROGMEM = {"Sv/h","mSv/h","uSv/h",};	//Misure in Sievert
-const char *unit_rt_desc[] PROGMEM = {"R/h","mR/h","uR/h",};	//Misure in Röntgen
+prog_char unit_0[] PROGMEM ="Sievert";
+prog_char unit_1[] PROGMEM = "Röntgen";
+const char *unit_set_desc[] PROGMEM = {unit_0,unit_1};	//Nomi delle misure per i settings
+prog_char unit_sv_0[] PROGMEM =	"Sv/h";
+prog_char unit_sv_1[] PROGMEM = "mSv/h";
+prog_char unit_sv_2[] PROGMEM = "uSv/h";
+const char *unit_sv_desc[] PROGMEM = {unit_sv_0,unit_sv_1,unit_sv_2};	//Misure in Sievert
+prog_char unit_rt_0[] PROGMEM =	"R/h";
+prog_char unit_rt_1[] PROGMEM = "mR/h";
+prog_char unit_rt_2[] PROGMEM = "uSRh";
+const char *unit_rt_desc[] PROGMEM = {unit_rt_0,unit_rt_1,unit_rt_2};	//Misure in Röntgen
 
 int T2count=0;					//Counter che viene incrementato dal timer 2
 boolean lampeggio=0;			//variabile che si inverte ogni 500ms e serve per far lampeggiare le cose
@@ -263,29 +271,9 @@ prog_char string_22[] PROGMEM = "Mn:";
 
 
 // Then set up a table to refer to your strings.
-PROGMEM const char *string_table[] = {	string_0,				//0
-										string_1,				//1
-										string_2, 				//2
-										string_3, 				//3
-										string_4, 				//4
-										string_5, 				//5
-										string_6, 				//6
-										string_7, 				//7
-										string_8, 				//8
-										string_9,				//9
-										string_10, 				//10
-										string_11, 				//11
-										string_12, 				//12
-										string_13, 				//13
-										string_14, 				//14
-										string_15, 				//15
-										string_16, 				//16
-										string_17, 				//17
-										string_18, 				//18
-										string_19,				//19
-										string_20, 				//20
-										string_21, 				//21
-										string_22};				//22
+PROGMEM const char *string_table[] = {string_0, string_1, string_2, string_3, string_4, string_5, string_6, string_7, string_8, string_9,
+										string_10, string_11, string_12, string_13, string_14, string_15, string_16, string_17, string_18, string_19,
+										string_20, string_21, string_22};
 char buffer[20];    // make sure this is large enough for the largest string it must hold
 
 
@@ -378,10 +366,10 @@ void setProbeSens() {
 void batteryLevelHandle() {
 
 	if (voltmt1.getVoltage() == 0.00) {
-		 lcd.createChar(0,battPWR);		//Se il voltaggio è 0.00 la batteria è scollegata e visualizzo il simbolo della spina
+		 lcd.createChar(0,battPWR);
 	} else {
 		//batt_perc=((x-VMin)/(VMax-VMin))*100
-		batt_perc = ((voltmt1.getVoltage()-2.8)/1.4)*100; //calcolo la percentuale di carica della batteria basato sul voltaggio
+		batt_perc = ((voltmt1.getVoltage()-2.8)/1.4)*100;
 	
 		if (batt_perc < 2) lcd.createChar(0,battAlert);
 		if ((batt_perc >= 2) && (batt_perc < 5)) lcd.createChar(0,battEmpty);
@@ -390,6 +378,8 @@ void batteryLevelHandle() {
 		if ((batt_perc >= 40) && (batt_perc < 60)) lcd.createChar(0,batt60);
 		if ((batt_perc >= 60) && (batt_perc < 80)) lcd.createChar(0,batt80);
 		if (batt_perc >= 80) lcd.createChar(0,batt100);
+		//if ((batt_perc >= 80) && (batt_perc <= 100)) lcd.createChar(0,batt100);
+		//if (batt_perc > 101) lcd.createChar(0,battChg);
 	}
 	lcd.setCursor(15, 1);
 	lcd.write((uint8_t)0);
@@ -448,22 +438,7 @@ void RTC_Handle(){
 			}
 }
 
-char getDoseSymbol() {
-	// Calcolo la scala e visualizzo il valore corretto
-	uint8_t i = 0;
-	if (Rad < 10) i=2;			// micro
-	else if (Rad < 10000) i=1;	// milli
-	else i=0;					// unità
-	//Decido se Sievert o Röntgen
-	switch (c_unit) { 
-		case 0:  
-			strcpy_P(buffer, (char*)pgm_read_word(&(unit_sv_desc[i])));
-			break;
-		case 1:  
-			strcpy_P(buffer, (char*)pgm_read_word(&(unit_rt_desc[i])));
-			break;
-	}
-}
+
 
 void display_handle(uint8_t func) {
 	//Gestione delle varie visualizzazioni fisse del display
@@ -539,19 +514,17 @@ void display_handle(uint8_t func) {
 			//lcd.print("CPM");
 
 			lcd.setCursor(0, 1);
-			lcd.print(getDoseSymbol());
+			lcd.print(units_desc[count_units]);
 			batteryLevelHandle();
+		}
 
+		case 6: {	
 			//Scrive i risultati del conteggio sul display
 			lcd.setCursor(5, 0); 
 			lcd.print(CPM,0);
 			lcd.setCursor(6, 1); 
 			lcd.print(Rad,3);
 			lcd.setCursor(0, 0);
-		}
-
-		case 6: {	
-			//SPOSTATO NEL 5
 			break;
 		}
 		case 7:{
@@ -564,23 +537,25 @@ void display_handle(uint8_t func) {
 			if (mode == 0) {
 				lcd.setCursor(4,1);
 				strcpy_P(buffer, (char*)pgm_read_word(&(string_table[7]))); //One Count
+				lcd.print(buffer);
 				//lcd.print("One Count");
 			}
 			if (mode == 1) {
 				lcd.setCursor(3,1);
 				strcpy_P(buffer, (char*)pgm_read_word(&(string_table[8]))); //Loop Count
+				lcd.print(buffer);
 				//lcd.print("Loop Count");
 			}
 			if (mode == 2) {
 				lcd.setCursor(5,1);
 				strcpy_P(buffer, (char*)pgm_read_word(&(string_table[9]))); //Geiger
+				lcd.print(buffer);
 				//lcd.print("Geiger");
 			}
-			lcd.print(buffer);
 			break;
 	   }
 		case 8:{
-			//PORTATA LA GESTIONE AL 7
+			//PORTATA LA GESTIONE AL /
 			break;
 	   }
 		case 9:{
@@ -590,15 +565,13 @@ void display_handle(uint8_t func) {
 			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[1]))); //Count Unit
 			lcd.print(buffer);
 			//lcd.print("Count Unit");
-			//Valore del settaggio durante il setup della
-			//Unità di misura 0=Sievert, 1=Röntgen
-			lcd.setCursor(3,1);
-			lcd.print((char*)pgm_read_word(&(string_table[c_unit])));
-
 			break;
 	   }
 		case 10:{
-			//SPOSTATO NEL 9
+			//Valore del settaggio durante il setup della
+			//Unità di misura 0=mR/h 1=uR/h 2=uSv/h
+			lcd.setCursor(5,1);
+			lcd.print(units_desc[count_units]);
 			break;
 	   }
 		case 11:{
@@ -622,7 +595,7 @@ void display_handle(uint8_t func) {
 			lcd.setCursor(4,1);
 			lcd.print(BaseTempi,DEC);
 			lcd.setCursor(10,1);
-			lcd.print(getDoseSymbol());
+			lcd.print(units_desc[count_units]);
 			batteryLevelHandle();
 			
 			break;
@@ -688,11 +661,11 @@ void display_handle(uint8_t func) {
 			lcd.print(buffer);
 			//lcd.print("Mn:");
 			lcd.setCursor(9,1);
-			lcd.print(getDoseSymbol());	//In base al valore recupero la scala
+			lcd.print(units_desc[count_units]);
 			batteryLevelHandle();
 
 			lcd.setCursor(4,0);
-			lcd.print(CPM,0);		//Scrivo i CPM
+			lcd.print(CPM,0);	//Scrivo i CPM
 			lcd.setCursor(12,0);
 			lcd.print(min_totali);	//Scrivo i minuti
 			lcd.setCursor(2, 1); 
@@ -855,16 +828,18 @@ void setting_handle(uint8_t func) {
 			do {
 				Buzzer();
 				lcdBacklightHandle();
-				display_handle(9);	// Visualizzo il valore salvato EEPROM
+				display_handle(10);	// Visualizzo il valore salvato EEPROM
 				delay(50);
-				if (digitalRead(KEY_UP)== HIGH && c_unit < 2) c_unit++;
-				if (digitalRead(KEY_DW)== HIGH && c_unit > 0) c_unit--;
+				if (digitalRead(KEY_UP)== HIGH && count_units < 3) count_units++;
+				if (digitalRead(KEY_DW)== HIGH && count_units > 0) count_units--;
 				if (digitalRead(KEY_MENU)== LOW) break;
 				delay(50);
 				if (digitalRead(KEY_SET)== LOW) {
 					delay(50);
 					if (digitalRead(KEY_SET)== LOW) {
-						EEPROM.write(0x04,c_unit);    // Scrive Set della Base Tempi       
+						//lcd.setCursor(6, 1); 
+						//lcd.print("    ");
+						EEPROM.write(0x04,count_units);    // Scrive Set della Base Tempi       
 					}
 				}
 			}
@@ -1119,14 +1094,14 @@ void EEPROM_Init_Read() {
 	mode=EEPROM.read(0x03);					// Modalità Scaler, Ratemeter o Geiger
 	if (mode > 2) mode = 0;					// Se la EEPROM è vuota, imposto a One Count
 
-	c_unit=EEPROM.read(0x04);			//Unità di misura 0=mR/h 1=uR/h 2=uSv/h
-	if (c_unit==255) c_unit=0;			//Se la EEPROM è vuota, imposto i uSivert come default
+	count_units=EEPROM.read(0x04);			//Unità di misura 0=mR/h 1=uR/h 2=uSv/h
+	if (count_units==255) count_units=2;	//Se la EEPROM è vuota, imposto i uSv/h come default
 
 	lcd_mode=EEPROM.read(0x05);				//Modalita dell'LCD
-	if (lcd_mode==255) lcd_mode=1;	//Se la EEPROM è vuota, imposto il display sempre acceso
+	if (count_units==255) lcd_mode=1;	//Se la EEPROM è vuota, imposto il display sempre acceso
 
 	lcd_mode=EEPROM.read(0x06);				//Modalita dell'LCD
-	if (probe_preset==255) probe_preset=0;	//Se la EEPROM è vuota, imposto il display sempre acceso
+	if (count_units==255) probe_preset=0;	//Se la EEPROM è vuota, imposto il display sempre acceso
 
 }
 
@@ -1223,15 +1198,6 @@ void geiger_handle() {
 	}
 }
 
-float getDoseMulFactor(float dose) {
-	// Routine per calcolare il moltiplicatore per la scala automatica
-	// Ringrazio https://github.com/radhoo per lo spunto su codice
-	// Preso dal suo uRADMonitor https://github.com/radhoo/uradmonitor_kit1/blob/master/code/uRADMonitor.cpp
-	if (dose < 10) return 1; // show in micros
-	else if (dose < 10000) return 0.001; // show in milis
-	else return 0.000001; // show in units
-}
-
 void pulse_count(){
 
 	//mode == 0 One Count
@@ -1245,6 +1211,8 @@ void pulse_count(){
 		TotImp = 0;
 		Rad = 0;
 
+	
+
 	if (mode==2){
 		//Conteggio Geiger
 		delay(500);
@@ -1257,19 +1225,21 @@ void pulse_count(){
 				min_totali = sec_totali/60;				//Minuti totali, servono per il display
 				CPM = (float(TotImp)/float(sec_totali));
 				CPM = CPM*60;							//CPM totali dall'inizio del conteggio
-				switch (c_unit){						//In base all'unità di misura, calcolo il valore in micro
-					case 0:	//calcolo in uSv/h
-						Rad=(CPM/Sens)*10; //micros
+				switch (count_units){					//In base all'unità di misura, conteggio il valore
+				  case 0:
+						Rad=CPM/Sens;            
 						break;
-					case 1:	//calcolo in uR/h
-						Rad=(CPM/Sens)*1000; //micros
+				  case 1:
+						Rad=(CPM/Sens)*1000;
+						break;
+				  case 2:
+						Rad=(CPM/Sens)*10;
 						break;
 				}
-				Rad=Rad*getDoseMulFactor(Rad);			//In base alla doe ricalcolo calcolo la scala
-				b500ms=false;							//Resetto la variabile dell'interrupt ogni 500ms
+				b500ms=false;	//Resetto la variabile dell'interrupt ogni 500ms
 			}
-			if (b100ms == true){						//aggiorno il display ogni 100ms
-				display_handle(16);						//Visualizzo sul display la parte statica e dinamica
+			if (b100ms == true){		//aggiorno il display ogni 100ms
+				display_handle(16);		//Visualizzo sul display la parte statica e dinamica
 				b100ms = false;
 			}
 			//Se premo il tasto menù durante il conteggio scrivo il log
@@ -1318,24 +1288,30 @@ void end_count() {
 	CPM=TotImp*Molt;
 	sei();
 
-	switch (c_unit){						//In base all'unità di misura, calcolo il valore in micro
-		case 0:	//calcolo in uSv/h
-			Rad=(CPM/Sens)*10; //micros
-			break;
-		case 1:	//calcolo in uR/h
-			Rad=(CPM/Sens)*1000; //micros
-			break;
-	}
-	Rad=Rad*getDoseMulFactor(Rad);			//In base alla doe ricalcolo calcolo la scala
+	//Unità di misura 0=mR/h 1=uR/h 2=uSv/h
+	//Rad=CPM/Sens*10;
+
+	switch (count_units){
+      case 0:
+            Rad=CPM/Sens;            
+            break;
+      case 1:
+            Rad=(CPM/Sens)*1000;
+            break;
+      case 2:
+            Rad=(CPM/Sens)*10;
+            break;
+     } 
 
 	display_handle(5);
+	display_handle(6);  
 
 	//Provo a Scrivere in un File
 	Log_Write();
 
-	if (mode == 0) key_wait();				//Mode = 0 = One Count
-	if (mode == 1) {						//Mode = 1 = Loop Count Aspetto 5 secondi e ricomincio
-		if (sd_card_ok == true) delay(2500);//se sto usando una SD in delay deve essere minore in quanto bisogna sommare il tempo di scrittura
+	if (mode == 0) key_wait();			//Mode = 0 = One Count
+	if (mode == 1) {					//Mode = 1 = Loop Count Aspetto 5 secondi e ricomincio
+		if (sd_card_ok == true) delay(2500);	//se sto usando una SD in delay deve essere minore in quanto bisogna sommare il tempo di scrittura
 		else delay(5000); 
 	}
 	cli();		//Disabilito gli interrupt
@@ -1416,7 +1392,7 @@ void Log_Write(){
 		delay(50);
 		sd_file.print(",");
 		delay(50);
-		sd_file.print(getDoseSymbol());
+		sd_file.print(units_desc[count_units]);
 		delay(50);
 		sd_file.print(",");
 		delay(50);
@@ -1462,10 +1438,12 @@ ISR(TIMER2_OVF_vect) {
 }  
 
 void Buzzer(){
-	if(beep_flag==1){ //il beep_flag e' settato, devo far suonare il buzzer!
+	if(beep_flag==1){ //il beep_flag � settato, devo far suonare il buzzer!
 		digitalWrite(BEEPER, HIGH);
+		//digitalWrite(AUDIO_OUT, HIGH);
 		delay(1);
 		digitalWrite(BEEPER, LOW);
+		//digitalWrite(AUDIO_OUT, LOW);
 		beep_flag=0; //resetta il beep_flag
 	}
 }
