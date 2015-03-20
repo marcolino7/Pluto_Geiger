@@ -155,7 +155,8 @@ uint8_t VarServInt=0;			// Variabile di servizio
 uint8_t VarServInt1=0;			// Variabile di servizio uno
 float CPM=0;					// CPM
 float Molt=6;					// * * * Moltiplicatore fra CP e CPM (dipende da BaseTempi)
-float Rad=0;					// Radioattività espressa in mR/h
+float Rad=0;					// Radioattività espressa nella scala calcolata
+float RadRaw=0;					// Radioattività senza moltiplicatore
 int beep_flag=0;
 uint8_t mode = 0;				//0 = One Count 1 = Loop Count 2 = Geiger
 
@@ -165,7 +166,7 @@ uint8_t mode = 0;				//0 = One Count 1 = Loop Count 2 = Geiger
 
 uint8_t c_unit = 0;												//Unità di misura 0=Sievert, 1=Röntgen
 prog_char unit_0[] PROGMEM ="Sievert";
-prog_char unit_1[] PROGMEM = "Röntgen";
+prog_char unit_1[] PROGMEM = "Rontgen";
 const char *unit_set_desc[] PROGMEM = {unit_0,unit_1};	//Nomi delle misure per i settings
 prog_char unit_sv_0[] PROGMEM =	"Sv/h";
 prog_char unit_sv_1[] PROGMEM = "mSv/h";
@@ -173,7 +174,7 @@ prog_char unit_sv_2[] PROGMEM = "uSv/h";
 const char *unit_sv_desc[] PROGMEM = {unit_sv_0,unit_sv_1,unit_sv_2};	//Misure in Sievert
 prog_char unit_rt_0[] PROGMEM =	"R/h";
 prog_char unit_rt_1[] PROGMEM = "mR/h";
-prog_char unit_rt_2[] PROGMEM = "uSRh";
+prog_char unit_rt_2[] PROGMEM = "uR/h";
 const char *unit_rt_desc[] PROGMEM = {unit_rt_0,unit_rt_1,unit_rt_2};	//Misure in Röntgen
 
 int T2count=0;					//Counter che viene incrementato dal timer 2
@@ -438,10 +439,17 @@ void RTC_Handle(){
 			}
 }
 
+float getDoseMultiplier(float dose) {
+	// In base alla dose calcolo la scala
+	if (dose < 10) return 1;				// micro
+	else if (dose < 10000) return 0.001;	// milli
+	else return 0.000001;					// unità intera
+ }
+
 char *getDoseScaleSymbol() {
 	uint8_t i = 0;
-	if (Rad < 10) i=2;			// micro
-	else if (Rad < 10000) i=1;	// milli
+	if (RadRaw < 10) i=2;			// micro
+	else if (RadRaw < 10000) i=1;	// milli
 	else i=0;					// unità Intera
 	switch (c_unit) {
 		case 0:
@@ -577,7 +585,7 @@ void display_handle(uint8_t func) {
 			//Aspetto del display durante il setup delle Unità di misura
 			lcd.clear();
 			lcd.setCursor(3,0);
-			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[1]))); //Count Unit
+			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[5]))); //Count Unit
 			lcd.print(buffer);
 			//lcd.print("Count Unit");
 			
@@ -611,8 +619,10 @@ void display_handle(uint8_t func) {
 			//lcd.print("Sec:");
 			lcd.setCursor(4,1);
 			lcd.print(BaseTempi,DEC);
-			lcd.setCursor(10,1);
-			lcd.print(getDoseScaleSymbol());
+			lcd.setCursor(8,1);
+			strcpy_P(buffer, (char*)pgm_read_word(&(unit_set_desc[c_unit])));
+			lcd.print(buffer);
+			//lcd.print(getDoseScaleSymbol());
 			batteryLevelHandle();
 			
 			break;
@@ -1217,13 +1227,6 @@ void geiger_handle() {
 	}
 }
 
-float getDoseMultiplier(float dose) {
-	// In base alla dose calcolo la scala
-	if (dose < 10) return 1;				// micro
-	else if (dose < 10000) return 0.001;	// milli
-	else return 0.000001;					// unità intera
- }
-
 void pulse_count(){
 
 	//mode == 0 One Count
@@ -1254,13 +1257,13 @@ void pulse_count(){
 				//Unità di misura 0=Sievert 1=Röntgen
 				switch (c_unit){					//In base all'unità di misura, conteggio il valore in scala micro
 				  case 0:	//Sievert
-						Rad=(CPM/Sens)*10;
+						RadRaw=(CPM/Sens)*10;
 						break;
 				  case 1:	//Röntgen
-						Rad=(CPM/Sens)*1000;
+						RadRaw=(CPM/Sens)*1000;
 						break;
 				}
-				Rad=Rad*getDoseMultiplier(Rad); //In base al valore calcolato applico la Scala
+				Rad=RadRaw*getDoseMultiplier(RadRaw); //In base al valore calcolato applico la Scala
 
 				b500ms=false;	//Resetto la variabile dell'interrupt ogni 500ms
 			}
@@ -1317,13 +1320,13 @@ void end_count() {
 	//Unità di misura 0=Sievert 1=Röntgen
 	switch (c_unit){					//In base all'unità di misura, conteggio il valore in scala micro
 		case 0:	//Sievert
-			Rad=(CPM/Sens)*10;
+			RadRaw=(CPM/Sens)*10;
 			break;
 		case 1:	//Röntgen
-			Rad=(CPM/Sens)*1000;
+			RadRaw=(CPM/Sens)*1000;
 			break;
 	}
-	Rad=Rad*getDoseMultiplier(Rad);		//In base al valore calcolato applico la Scala
+	Rad=RadRaw*getDoseMultiplier(RadRaw);		//In base al valore calcolato applico la Scala
 
 	display_handle(5);
 	display_handle(6);  
