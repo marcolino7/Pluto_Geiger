@@ -269,12 +269,13 @@ prog_char string_19[] PROGMEM = "Sec:";
 prog_char string_20[] PROGMEM = "Time";
 prog_char string_21[] PROGMEM = "Date";
 prog_char string_22[] PROGMEM = "Mn:";
-
+prog_char string_23[] PROGMEM = "/";
+prog_char string_24[] PROGMEM = ",";
 
 // Then set up a table to refer to your strings.
 PROGMEM const char *string_table[] = {string_0, string_1, string_2, string_3, string_4, string_5, string_6, string_7, string_8, string_9,
 										string_10, string_11, string_12, string_13, string_14, string_15, string_16, string_17, string_18, string_19,
-										string_20, string_21, string_22};
+										string_20, string_21, string_22, string_23, string_24};
 char buffer[20];    // make sure this is large enough for the largest string it must hold
 
 
@@ -1381,45 +1382,55 @@ void Log_Write(){
 		//Compongo la riga da scrivere sul file
 		sd_file.print(now.day(),DEC);
 		delay(50);
-		sd_file.print("/");
+		strcpy_P(buffer, (char*)pgm_read_word(&(string_table[23])));
+		sd_file.print(buffer); // /
 		delay(50);
 		sd_file.print(now.month(),DEC);
 		delay(50);
-		sd_file.print("/");
+		strcpy_P(buffer, (char*)pgm_read_word(&(string_table[23])));
+		sd_file.print(buffer); // /
 		delay(50);
 		sd_file.print(now.year(),DEC);
 		delay(50);
-		sd_file.print(",");
+		strcpy_P(buffer, (char*)pgm_read_word(&(string_table[24])));
+		sd_file.print(buffer); // ,
 		delay(50);
 		sd_file.print(now.hour(),DEC);
 		delay(50);
-		sd_file.print(":");
+		strcpy_P(buffer, (char*)pgm_read_word(&(string_table[17])));
+		sd_file.print(buffer); // :
 		delay(50);
 		sd_file.print(now.minute(),DEC);
 		delay(50);
-		sd_file.print(":");
+		strcpy_P(buffer, (char*)pgm_read_word(&(string_table[17])));
+		sd_file.print(buffer); // :
 		delay(50);
 		sd_file.print(now.second(),DEC);
 		delay(50);
-		sd_file.print(",");
+		strcpy_P(buffer, (char*)pgm_read_word(&(string_table[24])));
+		sd_file.print(buffer); // ,
 		delay(50);
 		//Se sono in Geiger Mode scrivo i seconti totali
 		if (mode==2) sd_file.print(sec_totali,DEC);
 		else sd_file.print(BaseTempi,DEC);
 		delay(50);
-		sd_file.print(",");
+		strcpy_P(buffer, (char*)pgm_read_word(&(string_table[24])));
+		sd_file.print(buffer); // ,
 		delay(50);
 		sd_file.print(CPM,2);
 		delay(50);
-		sd_file.print(",");
+		strcpy_P(buffer, (char*)pgm_read_word(&(string_table[24])));
+		sd_file.print(buffer); // ,
 		delay(50);
 		sd_file.print(Rad,3);
 		delay(50);
-		sd_file.print(",");
+		strcpy_P(buffer, (char*)pgm_read_word(&(string_table[24])));
+		sd_file.print(buffer); // ,
 		delay(50);
 		sd_file.print(getDoseScaleSymbol());
 		delay(50);
-		sd_file.print(",");
+		strcpy_P(buffer, (char*)pgm_read_word(&(string_table[24])));
+		sd_file.print(buffer); // ,
 		delay(50);
 		sd_file.println(mode);
 		
