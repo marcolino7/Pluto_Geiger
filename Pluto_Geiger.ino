@@ -438,6 +438,21 @@ void RTC_Handle(){
 			}
 }
 
+char *getDoseScaleSymbol() {
+	uint8_t i = 0;
+	if (Rad < 10) i=2;			// micro
+	else if (Rad < 10000) i=1;	// milli
+	else i=0;					// unità Intera
+	switch (c_unit) {
+		case 0:
+			strcpy_P(buffer, (char*)pgm_read_word(&(unit_sv_desc[i]))); //Sievert
+			break;
+		case 1:
+			strcpy_P(buffer, (char*)pgm_read_word(&(unit_rt_desc[i]))); //Röntgen
+			break;
+	}
+	return buffer;
+}
 
 
 void display_handle(uint8_t func) {
@@ -514,7 +529,7 @@ void display_handle(uint8_t func) {
 			//lcd.print("CPM");
 
 			lcd.setCursor(0, 1);
-			lcd.print(units_desc[count_units]);
+			lcd.print(getDoseScaleSymbol());
 			batteryLevelHandle();
 		}
 
@@ -597,7 +612,7 @@ void display_handle(uint8_t func) {
 			lcd.setCursor(4,1);
 			lcd.print(BaseTempi,DEC);
 			lcd.setCursor(10,1);
-			lcd.print(units_desc[count_units]);
+			lcd.print(getDoseScaleSymbol());
 			batteryLevelHandle();
 			
 			break;
@@ -663,7 +678,9 @@ void display_handle(uint8_t func) {
 			lcd.print(buffer);
 			//lcd.print("Mn:");
 			lcd.setCursor(9,1);
-			lcd.print(units_desc[count_units]);
+			//recupero la scala in maniera automatica			
+			lcd.print(getDoseScaleSymbol());
+			
 			batteryLevelHandle();
 
 			lcd.setCursor(4,0);
@@ -1397,7 +1414,7 @@ void Log_Write(){
 		delay(50);
 		sd_file.print(",");
 		delay(50);
-		sd_file.print(units_desc[count_units]);
+		sd_file.print(getDoseScaleSymbol());
 		delay(50);
 		sd_file.print(",");
 		delay(50);
