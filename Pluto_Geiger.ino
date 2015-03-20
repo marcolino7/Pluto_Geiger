@@ -1085,25 +1085,25 @@ void gestione_cifre(uint16_t dato, uint8_t status){
 }
 
 void EEPROM_Init_Read() {
-	SetTemp=EEPROM.read(0x00);		// Legge Set della Base Tempi
-	if (SetTemp==255) SetTemp = 0;	// Se la EEPROM è vuota, imposto 10 secondi
-	BaseTempi= Tempo[SetTemp];		// Imposto la base tempi recuperandola dall'array
+	SetTemp=EEPROM.read(0x00);				// Legge Set della Base Tempi
+	if (SetTemp==255) SetTemp = 0;			// Se la EEPROM è vuota, imposto 10 secondi
+	BaseTempi= Tempo[SetTemp];				// Imposto la base tempi recuperandola dall'array
 	
-	SensCustom=EEPROMReadInt(0x01);		// Legge Sensibilità Sonda
+	SensCustom=EEPROMReadInt(0x01);			// Legge Sensibilità Sonda
 	if (SensCustom==0xFF00) Sens = 3500;	// Se la EEPROM è vuota a 32767 (Integer), imposto la sensibilità a 3500
-	if (SensCustom==0xFF) Sens = 200;	// Se la EEPROM è vuota a 255 (Byte), imposto la sensibilità a 200
+	if (SensCustom==0xFF) Sens = 200;		// Se la EEPROM è vuota a 255 (Byte), imposto la sensibilità a 200
 
 	mode=EEPROM.read(0x03);					// Modalità Scaler, Ratemeter o Geiger
 	if (mode > 2) mode = 0;					// Se la EEPROM è vuota, imposto a One Count
 
-	count_units=EEPROM.read(0x04);			//Unità di misura 0=mR/h 1=uR/h 2=uSv/h
-	if (count_units==255) count_units=2;	//Se la EEPROM è vuota, imposto i uSv/h come default
+	c_unit=EEPROM.read(0x04);				//Unità di misura 0=mR/h 1=uR/h 2=uSv/h
+	if (c_unit==255) c_unit=2;				//Se la EEPROM è vuota, imposto i uSv/h come default
 
 	lcd_mode=EEPROM.read(0x05);				//Modalita dell'LCD
-	if (count_units==255) lcd_mode=1;	//Se la EEPROM è vuota, imposto il display sempre acceso
+	if (lcd_mode==255) lcd_mode=1;			//Se la EEPROM è vuota, imposto il display sempre acceso
 
 	lcd_mode=EEPROM.read(0x06);				//Modalita dell'LCD
-	if (count_units==255) probe_preset=0;	//Se la EEPROM è vuota, imposto il display sempre acceso
+	if (probe_preset==255) probe_preset=0;	//Se la EEPROM è vuota, imposto il display sempre acceso
 
 }
 
