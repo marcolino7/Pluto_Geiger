@@ -239,7 +239,7 @@ volatile uint16_t year;
 uint8_t timeedit_hh=0,timeedit_mm=0,timeedit_ss=0;	//Variabile che servono a modificare il display in edit
 
 // Base Tempi ---------------
-uint8_t Tempo[6]={10,30,60,180,600,1800};
+uint16_t Tempo[6]={10,30,60,180,600,1800};
 float K[6]={6,2,1,.333,.1,.033};
 
 //Variabili che Gestiscono il Voltmetro con la mia libreria
@@ -828,8 +828,8 @@ void setting_handle(uint8_t func) {
 					delay(50);
 					if (digitalRead(KEY_SET)== LOW) {
 						EEPROM.write(0x00,SetTemp);    // Scrive Set della Base Tempi
-						BaseTempi = Tempo[SetTemp];
-						Molt= K[SetTemp];
+						//BaseTempi = Tempo[SetTemp];
+						//Molt= K[SetTemp];
 					}
 				}
 			}
@@ -1292,7 +1292,6 @@ void pulse_count(){
 	}else{
 		//Conteggio One Count o Loop Count
 		TempoMax=millis()+BaseTempi*1000;
-		//display_handle(3);	//Display per il conteggio
 		do {
 			Buzzer();
 			lcdBacklightHandle();	//Gestisco la Retro Illuminazione
