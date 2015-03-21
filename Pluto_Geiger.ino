@@ -149,10 +149,10 @@ const String fw_version = "0.13";
 LiquidCrystal_I2C lcd(lcd_addr,16,2);	//inizializzo il display 16 col 2 righe
 
 
-uint8_t SetTemp=0;				// Indice della Base Tempi
 unsigned long TotImp=0;			// Totale degli impulsi
 uint16_t BaseTempi=10;			// * * * Base tempi in secondi
-unsigned long TempoMax=0;		// Termine conteggio
+//unsigned long TempoMax=0;		// Termine conteggio
+float TempoMax=0;
 uint8_t VarServInt=0;			// Variabile di servizio
 uint8_t VarServInt1=0;			// Variabile di servizio uno
 float CPM=0;					// CPM
@@ -239,8 +239,9 @@ volatile uint16_t year;
 uint8_t timeedit_hh=0,timeedit_mm=0,timeedit_ss=0;	//Variabile che servono a modificare il display in edit
 
 // Base Tempi ---------------
-uint16_t Tempo[6]={10,30,60,180,600,1800};
-float K[6]={6,2,1,.333,.1,.033};
+uint8_t		SetTemp=0;				// Indice della Base Tempi
+uint16_t	Tempo[6]={10,30,60,180,600,1800};
+float		K[6]={6,2,1,.333,.1,.033};
 
 //Variabili che Gestiscono il Voltmetro con la mia libreria
 // Voltmetro(pin,R1,R2.VRef)
@@ -515,7 +516,13 @@ void display_handle(uint8_t func) {
 			batteryLevelHandle();
 
 			lcd.setCursor(6,0);
-			lcd.print(int((TempoMax-millis())/1000));
+			lcd.print((TempoMax-millis())/1000);
+			//lcd.print(TempoMax);
+			//lcd.setCursor(10, 1); 
+			//lcd.print(millis());
+			
+
+
 			lcd.setCursor(6, 1); 
 			lcd.print(TotImp);
 			break;
@@ -1291,7 +1298,8 @@ void pulse_count(){
 
 	}else{
 		//Conteggio One Count o Loop Count
-		TempoMax=millis()+BaseTempi*1000;
+		//TempoMax=millis()+BaseTempi*1000;
+		TempoMax=millis()+Tempo[SetTemp]*1000;
 		do {
 			Buzzer();
 			lcdBacklightHandle();	//Gestisco la Retro Illuminazione
