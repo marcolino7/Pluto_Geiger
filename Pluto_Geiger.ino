@@ -276,7 +276,7 @@ prog_char string_23[] PROGMEM = "/";
 prog_char string_24[] PROGMEM = ",";
 
 // Then set up a table to refer to your strings.
-PROGMEM const char *string_table[] = {string_0, string_1, string_2, string_3, string_4, string_5, string_6, string_7, string_8, string_9,
+const char *string_table[] PROGMEM = {string_0, string_1, string_2, string_3, string_4, string_5, string_6, string_7, string_8, string_9,
 										string_10, string_11, string_12, string_13, string_14, string_15, string_16, string_17, string_18, string_19,
 										string_20, string_21, string_22, string_23, string_24};
 char buffer[20];    // make sure this is large enough for the largest string it must hold
@@ -787,7 +787,7 @@ void setting_handle(uint8_t func) {
 	switch (func) {
 		case 0:{	//Sensibilità Sonda
 			//display_handle(1);
-			delay(500);
+			/*delay(500);
 			do {
 				Buzzer();
 				lcdBacklightHandle();
@@ -814,11 +814,11 @@ void setting_handle(uint8_t func) {
 				setProbeSens();			//Imposto la sensibilità della sonda
 				}
 			}
-			while (digitalRead(KEY_SET)== HIGH);
+			while (digitalRead(KEY_SET)== HIGH);*/
 			break;
 		}
 		case 1: {	//Base Tempi
-			display_handle(2);
+			/*display_handle(2);
 			delay(500);
 			do {
 				Buzzer();
@@ -840,11 +840,11 @@ void setting_handle(uint8_t func) {
 					}
 				}
 			}
-			while (digitalRead(KEY_SET)== HIGH);
+			while (digitalRead(KEY_SET)== HIGH);*/
 			break;
 		}
 		case 2: { //Modalità Geiger, Scaler o Ratemeter
-			display_handle(7);
+			/*display_handle(7);
 			delay(500);
 			do {
 				Buzzer();
@@ -864,11 +864,11 @@ void setting_handle(uint8_t func) {
 					}
 				}
 			}
-			while (digitalRead(KEY_SET)== HIGH);
+			while (digitalRead(KEY_SET)== HIGH);*/
 			break;
 		}
 		case 3: { //Unità di misura
-			display_handle(9);
+			/*display_handle(9);
 			delay(500);
 			do {
 				Buzzer();
@@ -888,7 +888,7 @@ void setting_handle(uint8_t func) {
 					}
 				}
 			}
-			while (digitalRead(KEY_SET)== HIGH);
+			while (digitalRead(KEY_SET)== HIGH);*/
 			break;
 		}
 		case 4: { //Ora
@@ -1056,7 +1056,7 @@ _year:
 			break;
 		}
 		case 7: { //Impostazioni del Display
-			display_handle(20);
+			/*display_handle(20);
 			delay(500);
 			do {
 				Buzzer();
@@ -1073,12 +1073,12 @@ _year:
 					}
 				}
 			}
-			while (digitalRead(KEY_SET)== HIGH);
+			while (digitalRead(KEY_SET)== HIGH);*/
 			break;
 		}
 
 		case 8: { //Preset Sonda
-			display_handle(19);
+			/*display_handle(19);
 			delay(500);
 			do {
 				Buzzer();
@@ -1096,7 +1096,7 @@ _year:
 					setProbeSens();			//Imposto la sensibilità della sonda
 				}
 			}
-			while (digitalRead(KEY_SET)== HIGH);
+			while (digitalRead(KEY_SET)== HIGH);*/
 			break;
 		}
 	}
@@ -1299,7 +1299,9 @@ void pulse_count(){
 	}else{
 		//Conteggio One Count o Loop Count
 		//TempoMax=millis()+BaseTempi*1000;
-		TempoMax=millis()+Tempo[SetTemp]*1000;
+		unsigned long l = millis();
+		unsigned long BaseTempiMillis = BaseTempi*1000;
+		TempoMax=BaseTempiMillis+l;
 		do {
 			Buzzer();
 			lcdBacklightHandle();	//Gestisco la Retro Illuminazione
