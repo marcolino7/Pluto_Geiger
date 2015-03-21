@@ -167,8 +167,8 @@ uint8_t mode = 0;				//0 = One Count 1 = Loop Count 2 = Geiger
 //char* units_desc[] = {"mR/h","uR/h","uSv/h"};
 
 uint8_t c_unit = 0;												//Unità di misura 0=Sievert, 1=Röntgen
-prog_char unit_0[] PROGMEM ="Sievert";
-prog_char unit_1[] PROGMEM = "Rontgen";
+prog_char unit_0[] PROGMEM = "Siev.";
+prog_char unit_1[] PROGMEM = "Ront.";
 const char *unit_set_desc[] PROGMEM = {unit_0,unit_1};	//Nomi delle misure per i settings
 prog_char unit_sv_0[] PROGMEM =	"Sv/h";
 prog_char unit_sv_1[] PROGMEM = "mSv/h";
@@ -490,6 +490,9 @@ void display_handle(uint8_t func) {
 			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[13]))); //Time sec
 			lcd.print(buffer);
 			//lcd.print("TIME sec");
+
+			lcd.setCursor(4, 1);
+			lcd.print(Tempo[SetTemp]);
 			break;
 		}
 
@@ -599,7 +602,7 @@ void display_handle(uint8_t func) {
 			//lcd.print("Count Unit");
 			
 			//Unità di misura 0=Sievert 1=Röntgen
-			lcd.setCursor(4,1);
+			lcd.setCursor(6,1);
 			strcpy_P(buffer, (char*)pgm_read_word(&(unit_set_desc[c_unit])));
 			lcd.print(buffer);
 			break;
@@ -628,7 +631,7 @@ void display_handle(uint8_t func) {
 			//lcd.print("Sec:");
 			lcd.setCursor(4,1);
 			lcd.print(BaseTempi,DEC);
-			lcd.setCursor(8,1);
+			lcd.setCursor(10,1);
 			strcpy_P(buffer, (char*)pgm_read_word(&(unit_set_desc[c_unit])));
 			lcd.print(buffer);
 			//lcd.print(getDoseScaleSymbol());
@@ -813,12 +816,9 @@ void setting_handle(uint8_t func) {
 			do {
 				Buzzer();
 				lcdBacklightHandle();
-				BaseTempi= Tempo[SetTemp];
+				BaseTempi=Tempo[SetTemp];
 				Molt= K[SetTemp];
-				lcd.setCursor(6, 1); 
-				lcd.print("    ");
-				lcd.setCursor(6, 1);
-				lcd.print(BaseTempi,DEC);
+				display_handle(2);
 				delay(50);
 				if (digitalRead(KEY_UP)== HIGH && SetTemp < 6) SetTemp++;
 				if (digitalRead(KEY_DW)== HIGH && SetTemp > 0) SetTemp--;
@@ -827,9 +827,9 @@ void setting_handle(uint8_t func) {
 				if (digitalRead(KEY_SET)== LOW) {
 					delay(50);
 					if (digitalRead(KEY_SET)== LOW) {
-						//lcd.setCursor(6, 1); 
-						//lcd.print("    ");
-						EEPROM.write(0x00,SetTemp);    // Scrive Set della Base Tempi       
+						EEPROM.write(0x00,SetTemp);    // Scrive Set della Base Tempi
+						BaseTempi = Tempo[SetTemp];
+						Molt= K[SetTemp];
 					}
 				}
 			}
@@ -1138,7 +1138,7 @@ void EEPROM_Init_Read() {
 	lcd_mode=EEPROM.read(0x05);				//Modalita dell'LCD
 	if (lcd_mode==255) lcd_mode=1;			//Se la EEPROM è vuota, imposto il display sempre acceso
 
-	lcd_mode=EEPROM.read(0x06);				//Modalita dell'LCD
+	probe_preset=EEPROM.read(0x06);				//Modalita dell'LCD
 	if (probe_preset==255) probe_preset=0;	//Se la EEPROM è vuota, imposto il display sempre acceso
 
 }
