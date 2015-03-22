@@ -151,8 +151,7 @@ LiquidCrystal_I2C lcd(lcd_addr,16,2);	//inizializzo il display 16 col 2 righe
 
 unsigned long TotImp=0;			// Totale degli impulsi
 uint16_t BaseTempi=10;			// * * * Base tempi in secondi
-//unsigned long TempoMax=0;		// Termine conteggio
-float TempoMax=0;
+unsigned long TempoMax=0;		// Termine conteggio
 uint8_t VarServInt=0;			// Variabile di servizio
 uint8_t VarServInt1=0;			// Variabile di servizio uno
 float CPM=0;					// CPM
@@ -1298,10 +1297,7 @@ void pulse_count(){
 
 	}else{
 		//Conteggio One Count o Loop Count
-		//TempoMax=millis()+BaseTempi*1000;
-		unsigned long l = millis();
-		unsigned long BaseTempiMillis = BaseTempi*1000;
-		TempoMax=BaseTempiMillis+l;
+		TempoMax=millis()+((unsigned long)BaseTempi)*1000;	//Calcolo il tempo massimo
 		do {
 			Buzzer();
 			lcdBacklightHandle();	//Gestisco la Retro Illuminazione
@@ -1360,7 +1356,7 @@ void end_count() {
 	cli();		//Disabilito gli interrupt
 	TotImp=0;	//Resetto il conteggio
 	sei();		//Riabilito gli interrupt
-	TempoMax=millis()+BaseTempi*1000;  // Nuovo tempo limite
+	TempoMax=millis()+((unsigned long)BaseTempi)*1000;	//Calcolo il tempo massimo
 
 	if (mode == 0) {	//Se One Count, aspetto il tasto
 		if (VarServInt==LOW) geiger_status = 3;	//E' Stato premuto SET e torno al riepilogo
