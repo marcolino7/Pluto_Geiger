@@ -115,6 +115,8 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 0.13	-	Iniziato lo Sviluppo della Scala Automatica
 			Scala automatica implementata prima versione da testare
 			Spostate le stringhe della SD in Progmem
+0.14	-	Corretti i bug sulla base tempi
+			Corrette alcuni layout del dipslay
 
 
 */
@@ -143,7 +145,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 
 
 //Versione Firmware
-const String fw_version = "0.13";
+const String fw_version = "0.14";
 
 //Inizializzo l'LCD via I2C
 LiquidCrystal_I2C lcd(lcd_addr,16,2);	//inizializzo il display 16 col 2 righe
@@ -786,7 +788,7 @@ void setting_handle(uint8_t func) {
 	switch (func) {
 		case 0:{	//Sensibilità Sonda
 			//display_handle(1);
-			/*delay(500);
+			delay(500);
 			do {
 				Buzzer();
 				lcdBacklightHandle();
@@ -813,11 +815,11 @@ void setting_handle(uint8_t func) {
 				setProbeSens();			//Imposto la sensibilità della sonda
 				}
 			}
-			while (digitalRead(KEY_SET)== HIGH);*/
+			while (digitalRead(KEY_SET)== HIGH);
 			break;
 		}
 		case 1: {	//Base Tempi
-			/*display_handle(2);
+			display_handle(2);
 			delay(500);
 			do {
 				Buzzer();
@@ -839,11 +841,11 @@ void setting_handle(uint8_t func) {
 					}
 				}
 			}
-			while (digitalRead(KEY_SET)== HIGH);*/
+			while (digitalRead(KEY_SET)== HIGH);
 			break;
 		}
 		case 2: { //Modalità Geiger, Scaler o Ratemeter
-			/*display_handle(7);
+			display_handle(7);
 			delay(500);
 			do {
 				Buzzer();
@@ -863,11 +865,11 @@ void setting_handle(uint8_t func) {
 					}
 				}
 			}
-			while (digitalRead(KEY_SET)== HIGH);*/
+			while (digitalRead(KEY_SET)== HIGH);
 			break;
 		}
 		case 3: { //Unità di misura
-			/*display_handle(9);
+			display_handle(9);
 			delay(500);
 			do {
 				Buzzer();
@@ -887,7 +889,7 @@ void setting_handle(uint8_t func) {
 					}
 				}
 			}
-			while (digitalRead(KEY_SET)== HIGH);*/
+			while (digitalRead(KEY_SET)== HIGH);
 			break;
 		}
 		case 4: { //Ora
@@ -1055,7 +1057,7 @@ _year:
 			break;
 		}
 		case 7: { //Impostazioni del Display
-			/*display_handle(20);
+			display_handle(20);
 			delay(500);
 			do {
 				Buzzer();
@@ -1072,12 +1074,12 @@ _year:
 					}
 				}
 			}
-			while (digitalRead(KEY_SET)== HIGH);*/
+			while (digitalRead(KEY_SET)== HIGH);
 			break;
 		}
 
 		case 8: { //Preset Sonda
-			/*display_handle(19);
+			display_handle(19);
 			delay(500);
 			do {
 				Buzzer();
@@ -1095,7 +1097,7 @@ _year:
 					setProbeSens();			//Imposto la sensibilità della sonda
 				}
 			}
-			while (digitalRead(KEY_SET)== HIGH);*/
+			while (digitalRead(KEY_SET)== HIGH);
 			break;
 		}
 	}
