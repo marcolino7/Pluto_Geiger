@@ -1267,7 +1267,7 @@ void pulse_count(){
 	
 
 	if (mode==2){
-		//Conteggio Geiger
+		//Conteggio Infinito
 		delay(500);
 		inizio = millis();	//Momento iniziale del conteggio
 		do{
@@ -1301,7 +1301,23 @@ void pulse_count(){
 				if (digitalRead(KEY_MENU)==LOW) Log_Write();
 			}
 		}while (digitalRead(KEY_SET)==HIGH);	//Attendo la pressione del tasto SET e.....
-
+		geiger_status = 3;	//Vado alla schermata di riepilogo generale
+	}else if (mode==3){
+		//Conteggio Geiger
+		delay(500);
+		inizio = millis();	//Momento iniziale del conteggio
+		do{
+			Buzzer();									//Suono il buzzer se necessario
+			lcdBacklightHandle();						//Gestisco la Retro Illuminazione
+			
+			
+			
+			//Se premo il tasto menù durante il conteggio scrivo il log
+			if (digitalRead(KEY_MENU)==LOW) {
+				delay(200); //debounc
+				if (digitalRead(KEY_MENU)==LOW) Log_Write();
+			}
+		}while (digitalRead(KEY_SET)==HIGH);	//Attendo la pressione del tasto SET e.....
 		geiger_status = 3;	//Vado alla schermata di riepilogo generale
 
 	}else{
