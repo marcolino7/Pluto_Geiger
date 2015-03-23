@@ -713,10 +713,12 @@ void display_handle(uint8_t func) {
 			lcd.setCursor(3,0);
 			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[17]))); //:
 			lcd.print(buffer);
-			lcd.setCursor(9,0);
-			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[22]))); //Mn:
-			lcd.print(buffer);
-			//lcd.print("Mn:");
+			if (mode==2) {	//Se sono in modalità Geiger non scrivo i minuti
+				lcd.setCursor(9,0);
+				strcpy_P(buffer, (char*)pgm_read_word(&(string_table[22]))); //Mn:
+				lcd.print(buffer);
+				//lcd.print("Mn:");
+			}
 			lcd.setCursor(9,1);
 			//recupero la scala in maniera automatica			
 			lcd.print(getDoseScaleSymbol());
@@ -725,9 +727,10 @@ void display_handle(uint8_t func) {
 
 			lcd.setCursor(4,0);
 			lcd.print(CPM,0);	//Scrivo i CPM
-			lcd.setCursor(12,0);
-			lcd.print(min_totali);	//Scrivo i minuti
-			lcd.setCursor(2, 1); 
+			if (mode==2) {	//Se sono in modalità Geiger non scrivo i minuti
+				lcd.setCursor(12,0);
+				lcd.print(min_totali);	//Scrivo i minuti
+			}
 			lcd.setCursor(2, 1);
 			lcd.print(Rad,3);		//Scrivo il valore calcolato
 			break;
@@ -1317,6 +1320,20 @@ void pulse_count(){
 			if (geiger_calc_time == 4) {	//Conteggio i timeout di 500 ms per 4 volte 2000 ms = 2 sec
 				//Que effettuo il calcoli del Geiger ogni xx secondi, modificabili aumentando il numero di volte
 				//Che la variabile geiger_calc_time si incrementoa ogni 500ms
+				TotImp = 0;									//Azzero il conteggio degli impulsi
+				sec_totali = 2;								//Forzo i secondi totali a 2
+				CPM = (float(TotImp)/float(sec_totali));	//Calcolo i CPS
+				CPM = CPM*60;								//Converto in CPM
+				//Unità di misura 0=Sievert 1=Röntgen
+				switch (c_unit){					//In base all'unità di misura, conteggio il valore in scala micro
+				  case 0:	//Sievert
+						RadRaw=(CPM/Sens)*10;
+						break;
+				  case 1:	//Röntgen
+						RadRaw=(CPM/Sens)*1000;
+						break;
+				}
+				Rad=RadRaw*getDoseMultiplier(RadRaw); //In base al valore calcolato applico la Scala
 
 				geiger_calc_time=0;	//Resetto la variabile per iniziare un nuovo conteggio
 			}
