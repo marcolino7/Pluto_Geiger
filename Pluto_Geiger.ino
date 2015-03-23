@@ -163,7 +163,7 @@ float Molt=6;					// * * * Moltiplicatore fra CP e CPM (dipende da BaseTempi)
 float Rad=0;					// Radioattività espressa nella scala calcolata
 float RadRaw=0;					// Radioattività senza moltiplicatore
 int beep_flag=0;
-uint8_t mode = 0;				//0 = One Count 1 = Loop Count 2 = Geiger
+uint8_t mode = 0;				//0 = One Count 1 = Loop Count 2 = infinite 3 = Geiger
 
 //Unità di Misura
 //uint8_t count_units = 0;		//Unità di misura 0=mR/h 1=uR/h 2=uSv/h
@@ -261,7 +261,7 @@ prog_char string_5[] PROGMEM = "Count Unit";
 prog_char string_6[] PROGMEM = "Counter Mode";
 prog_char string_7[] PROGMEM = "One Count";
 prog_char string_8[] PROGMEM = "Loop Count";
-prog_char string_9[] PROGMEM = "Geiger";
+prog_char string_9[] PROGMEM = "Infinite";
 prog_char string_10[] PROGMEM = "sec";
 prog_char string_11[] PROGMEM = "SD Fail";
 prog_char string_12[] PROGMEM = "SD OK";
@@ -277,11 +277,12 @@ prog_char string_21[] PROGMEM = "Date";
 prog_char string_22[] PROGMEM = "Mn:";
 prog_char string_23[] PROGMEM = "/";
 prog_char string_24[] PROGMEM = ",";
+prog_char string_25[] PROGMEM = "Geiger";
 
 // Then set up a table to refer to your strings.
 const char *string_table[] PROGMEM = {string_0, string_1, string_2, string_3, string_4, string_5, string_6, string_7, string_8, string_9,
 										string_10, string_11, string_12, string_13, string_14, string_15, string_16, string_17, string_18, string_19,
-										string_20, string_21, string_22, string_23, string_24};
+										string_20, string_21, string_22, string_23, string_24, string_25};
 char buffer[20];    // make sure this is large enough for the largest string it must hold
 
 
@@ -593,7 +594,13 @@ void display_handle(uint8_t func) {
 			}
 			if (mode == 2) {
 				lcd.setCursor(5,1);
-				strcpy_P(buffer, (char*)pgm_read_word(&(string_table[9]))); //Geiger
+				strcpy_P(buffer, (char*)pgm_read_word(&(string_table[9]))); //Infinite
+				lcd.print(buffer);
+				//lcd.print("Infinite");
+			}
+			if (mode == 3) {
+				lcd.setCursor(5,1);
+				strcpy_P(buffer, (char*)pgm_read_word(&(string_table[25]))); //Geiger
 				lcd.print(buffer);
 				//lcd.print("Geiger");
 			}
@@ -854,15 +861,13 @@ void setting_handle(uint8_t func) {
 				lcdBacklightHandle();
 				display_handle(7);	// Visualizzo il valore salvato EEPROM
 				delay(50);
-				if (digitalRead(KEY_UP)== HIGH && mode < 3) mode++;
+				if (digitalRead(KEY_UP)== HIGH && mode < 4) mode++;
 				if (digitalRead(KEY_DW)== HIGH && mode > 0) mode--;
 				if (digitalRead(KEY_MENU)== LOW) break;
 				delay(50);
 				if (digitalRead(KEY_SET)== LOW) {
 					delay(50);
 					if (digitalRead(KEY_SET)== LOW) {
-						//lcd.setCursor(6, 1); 
-						//lcd.print("    ");
 						EEPROM.write(0x03,mode);    // Scrive Set della Base Tempi       
 					}
 				}
