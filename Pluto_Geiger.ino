@@ -131,19 +131,16 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 #define KEY_DW 9		//Tasto -
 #define BEEPER 6		//Buzzer
 #define AUDIO_OUT 5		//Uscita Audio verso il PC
-//#define mem_addr 0x51	//Indirizzo I2C della EEPROM
 #define lcd_addr 0x20	//Indirizzo I2C del Display con la versione SMD è 20 con la versione pdip è 38
 
 //Librerie
 #include <EEPROM.h>				//libreria EEPROM
 #include <SD.h>					//Libreria SD Ladyada - http://www.ladyada.net/products/microsd/
-#include <avr/pgmspace.h>		//Libreria di Supporto SD Card
-#include <stdio.h>				//C++ Standart I/O
+#include <avr/pgmspace.h>		//Libreria di Supporto SD Card e per salvare le variabili stringa nella FLASH
 #include <Wire.h>				//Libreria I2C
 #include <RTClib.h>				//Libreria DS1307 RTC
 #include <LiquidCrystal_I2C.h>	//Libreria LCD I2C con PCF8574AP - http://hmario.home.xs4all.nl/arduino/LiquidCrystal_I2C/
 #include <Voltmetro.h>			//Libreria che calcola il voltaggio
-#include <avr/pgmspace.h>		//Libreria per salvare le variabili stringa nella FLASH
 
 
 //Versione Firmware
@@ -151,7 +148,6 @@ const String fw_version = "0.14";
 
 //Inizializzo l'LCD via I2C
 LiquidCrystal_I2C lcd(lcd_addr,16,2);	//inizializzo il display 16 col 2 righe
-
 
 unsigned long TotImp=0;			// Totale degli impulsi
 uint16_t BaseTempi=10;			// * * * Base tempi in secondi
@@ -167,13 +163,10 @@ uint8_t mode = 0;				//0 = One Count 1 = Loop Count 2 = infinite 3 = Geiger
 uint8_t geiger_calc_time=0;		//Variabile che contiene il numero di volte che devono passare 500ms prima di fare il conteggio del geiger
 
 //Unità di Misura
-//uint8_t count_units = 0;		//Unità di misura 0=mR/h 1=uR/h 2=uSv/h
-//char* units_desc[] = {"mR/h","uR/h","uSv/h"};
-
-uint8_t c_unit = 0;												//Unità di misura 0=Sievert, 1=Röntgen
+uint8_t c_unit = 0;														//Unità di misura 0=Sievert, 1=Röntgen
 prog_char unit_0[] PROGMEM = "Siev.";
 prog_char unit_1[] PROGMEM = "Ront.";
-const char *unit_set_desc[] PROGMEM = {unit_0,unit_1};	//Nomi delle misure per i settings
+const char *unit_set_desc[] PROGMEM = {unit_0,unit_1};					//Nomi delle misure per i settings
 prog_char unit_sv_0[] PROGMEM =	"Sv/h";
 prog_char unit_sv_1[] PROGMEM = "mSv/h";
 prog_char unit_sv_2[] PROGMEM = "uSv/h";
@@ -226,7 +219,6 @@ unsigned long sec_totali = 0;
 unsigned long min_totali = 0;
 boolean b500ms = false;
 boolean b100ms = false;
-//boolean b250ms = false;
 long inizio = 0;	//contiene la variabile millis() al momento dell'inizio del conteggio
 
 //File su SD
@@ -1477,7 +1469,7 @@ void Log_Write(){
 		strcpy_P(buffer, (char*)pgm_read_word(&(string_table[24])));
 		sd_file.print(buffer); // ,
 		delay(50);
-		//Se sono in Geiger Mode scrivo i seconti totali
+		//Se sono in Infinite Mode scrivo i seconti totali
 		if (mode==2) sd_file.print(sec_totali,DEC);
 		else sd_file.print(BaseTempi,DEC);
 		delay(50);
