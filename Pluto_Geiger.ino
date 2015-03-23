@@ -118,6 +118,8 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 0.14	-	Corretti i bug sulla base tempi
 			Corrette alcuni layout del dipslay
 
+			Branch per il Vero contatore Geiger
+
 
 */
 
