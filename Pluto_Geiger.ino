@@ -164,6 +164,7 @@ float Rad=0;					// Radioattività espressa nella scala calcolata
 float RadRaw=0;					// Radioattività senza moltiplicatore
 int beep_flag=0;
 uint8_t mode = 0;				//0 = One Count 1 = Loop Count 2 = infinite 3 = Geiger
+uint8_t geiger_calc_time=0;		//Variabile che contiene il numero di volte che devono passare 500ms prima di fare il conteggio del geiger
 
 //Unità di Misura
 //uint8_t count_units = 0;		//Unità di misura 0=mR/h 1=uR/h 2=uSv/h
@@ -1309,9 +1310,20 @@ void pulse_count(){
 		do{
 			Buzzer();									//Suono il buzzer se necessario
 			lcdBacklightHandle();						//Gestisco la Retro Illuminazione
-			
-			
-			
+			if (b500ms==true){
+				//Incremento la variabile per il calcolo
+				geiger_calc_time++;
+			}
+			if (geiger_calc_time == 4) {	//Conteggio i timeout di 500 ms per 4 volte 2000 ms = 2 sec
+				//Que effettuo il calcoli del Geiger ogni xx secondi, modificabili aumentando il numero di volte
+				//Che la variabile geiger_calc_time si incrementoa ogni 500ms
+
+				geiger_calc_time=0;	//Resetto la variabile per iniziare un nuovo conteggio
+			}
+			if (b100ms == true){		//aggiorno il display ogni 100ms
+				display_handle(16);		//Visualizzo sul display la parte statica e dinamica
+				b100ms = false;
+			}
 			//Se premo il tasto menù durante il conteggio scrivo il log
 			if (digitalRead(KEY_MENU)==LOW) {
 				delay(200); //debounc
