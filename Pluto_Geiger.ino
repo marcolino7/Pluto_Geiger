@@ -117,6 +117,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 			Spostate le stringhe della SD in Progmem
 0.14	-	Corretti i bug sulla base tempi
 			Corrette alcuni layout del dipslay
+0.15	-	Contatore Geiger con 3 tempi di campionamento
 
 
 */
@@ -129,27 +130,23 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 #define KEY_DW 9		//Tasto -
 #define BEEPER 6		//Buzzer
 #define AUDIO_OUT 5		//Uscita Audio verso il PC
-//#define mem_addr 0x51	//Indirizzo I2C della EEPROM
 #define lcd_addr 0x20	//Indirizzo I2C del Display con la versione SMD è 20 con la versione pdip è 38
 
 //Librerie
 #include <EEPROM.h>				//libreria EEPROM
 #include <SD.h>					//Libreria SD Ladyada - http://www.ladyada.net/products/microsd/
-#include <avr/pgmspace.h>		//Libreria di Supporto SD Card
-#include <stdio.h>				//C++ Standart I/O
+#include <avr/pgmspace.h>		//Libreria di Supporto SD Card e per salvare le variabili stringa nella FLASH
 #include <Wire.h>				//Libreria I2C
 #include <RTClib.h>				//Libreria DS1307 RTC
 #include <LiquidCrystal_I2C.h>	//Libreria LCD I2C con PCF8574AP - http://hmario.home.xs4all.nl/arduino/LiquidCrystal_I2C/
 #include <Voltmetro.h>			//Libreria che calcola il voltaggio
-#include <avr/pgmspace.h>		//Libreria per salvare le variabili stringa nella FLASH
 
 
 //Versione Firmware
-const String fw_version = "0.14";
+const String fw_version = "0.15";
 
 //Inizializzo l'LCD via I2C
 LiquidCrystal_I2C lcd(lcd_addr,16,2);	//inizializzo il display 16 col 2 righe
-
 
 unsigned long TotImp=0;			// Totale degli impulsi
 uint16_t BaseTempi=10;			// * * * Base tempi in secondi
@@ -161,16 +158,14 @@ float Molt=6;					// * * * Moltiplicatore fra CP e CPM (dipende da BaseTempi)
 float Rad=0;					// Radioattività espressa nella scala calcolata
 float RadRaw=0;					// Radioattività senza moltiplicatore
 int beep_flag=0;
-uint8_t mode = 0;				//0 = One Count 1 = Loop Count 2 = Geiger
+uint8_t mode = 0;				//0 = One Count 1 = Loop Count 2 = infinite 3 = Geiger
+uint8_t geiger_calc_time=0;		//Variabile che contiene il numero di volte che devono passare 500ms prima di fare il conteggio del geiger
 
 //Unità di Misura
-//uint8_t count_units = 0;		//Unità di misura 0=mR/h 1=uR/h 2=uSv/h
-//char* units_desc[] = {"mR/h","uR/h","uSv/h"};
-
-uint8_t c_unit = 0;												//Unità di misura 0=Sievert, 1=Röntgen
+uint8_t c_unit = 0;														//Unità di misura 0=Sievert, 1=Röntgen
 prog_char unit_0[] PROGMEM = "Siev.";
 prog_char unit_1[] PROGMEM = "Ront.";
-const char *unit_set_desc[] PROGMEM = {unit_0,unit_1};	//Nomi delle misure per i settings
+const char *unit_set_desc[] PROGMEM = {unit_0,unit_1};					//Nomi delle misure per i settings
 prog_char unit_sv_0[] PROGMEM =	"Sv/h";
 prog_char unit_sv_1[] PROGMEM = "mSv/h";
 prog_char unit_sv_2[] PROGMEM = "uSv/h";
@@ -223,7 +218,6 @@ unsigned long sec_totali = 0;
 unsigned long min_totali = 0;
 boolean b500ms = false;
 boolean b100ms = false;
-//boolean b250ms = false;
 long inizio = 0;	//contiene la variabile millis() al momento dell'inizio del conteggio
 
 //File su SD
@@ -250,7 +244,7 @@ Voltmetro voltmt1(2,330000.0,100000.0,1.1);
 uint8_t batt_perc = 0;
 
 //Variabili per il display salvate nella flash
-prog_char string_0[] PROGMEM = "Pluto Geiger";   
+//prog_char string_0[] PROGMEM = "Pluto Geiger";   
 prog_char string_1[] PROGMEM = "Prb CPM x mR/h";
 prog_char string_2[] PROGMEM = "Prb Preset";
 prog_char string_3[] PROGMEM = "BackLight";
@@ -259,7 +253,7 @@ prog_char string_5[] PROGMEM = "Count Unit";
 prog_char string_6[] PROGMEM = "Counter Mode";
 prog_char string_7[] PROGMEM = "One Count";
 prog_char string_8[] PROGMEM = "Loop Count";
-prog_char string_9[] PROGMEM = "Geiger";
+prog_char string_9[] PROGMEM = "Infinite";
 prog_char string_10[] PROGMEM = "sec";
 prog_char string_11[] PROGMEM = "SD Fail";
 prog_char string_12[] PROGMEM = "SD OK";
@@ -275,11 +269,12 @@ prog_char string_21[] PROGMEM = "Date";
 prog_char string_22[] PROGMEM = "Mn:";
 prog_char string_23[] PROGMEM = "/";
 prog_char string_24[] PROGMEM = ",";
+prog_char string_25[] PROGMEM = "Geiger";
 
 // Then set up a table to refer to your strings.
-const char *string_table[] PROGMEM = {string_0, string_1, string_2, string_3, string_4, string_5, string_6, string_7, string_8, string_9,
+const char *string_table[] PROGMEM = {"", string_1, string_2, string_3, string_4, string_5, string_6, string_7, string_8, string_9,
 										string_10, string_11, string_12, string_13, string_14, string_15, string_16, string_17, string_18, string_19,
-										string_20, string_21, string_22, string_23, string_24};
+										string_20, string_21, string_22, string_23, string_24, string_25};
 char buffer[20];    // make sure this is large enough for the largest string it must hold
 
 
@@ -467,9 +462,9 @@ void display_handle(uint8_t func) {
 		case 0: {	//Splash Screen
 			lcd.clear();
 			lcd.setCursor(2, 0); 
-			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[0]))); //Pluto Geiger
-			lcd.print(buffer);
-			//lcd.print("Pluto Geiger");
+			//strcpy_P(buffer, (char*)pgm_read_word(&(string_table[0]))); //Pluto Geiger
+			//lcd.print(buffer);
+			lcd.print("Pluto Geiger");
 			lcd.setCursor(6, 1); 
 			lcd.print("v"+fw_version);
 			break;
@@ -591,9 +586,19 @@ void display_handle(uint8_t func) {
 			}
 			if (mode == 2) {
 				lcd.setCursor(5,1);
-				strcpy_P(buffer, (char*)pgm_read_word(&(string_table[9]))); //Geiger
+				strcpy_P(buffer, (char*)pgm_read_word(&(string_table[9]))); //Infinite
 				lcd.print(buffer);
-				//lcd.print("Geiger");
+				//lcd.print("Infinite");
+			}
+			if (mode >= 3) {
+				lcd.setCursor(2,1);
+				strcpy_P(buffer, (char*)pgm_read_word(&(string_table[25]))); //Geiger
+				lcd.print(buffer);
+				lcd.setCursor(9,1);
+				lcd.print(mode-2);
+				lcd.setCursor(11,1);
+				strcpy_P(buffer, (char*)pgm_read_word(&(string_table[10]))); //Geiger
+				lcd.print(buffer);
 			}
 			break;
 	   }
@@ -631,7 +636,10 @@ void display_handle(uint8_t func) {
 			lcd.setCursor(10,0);
 			if (mode == 0) lcd.print("One");
 			if (mode == 1) lcd.print("Loop");
-			if (mode == 2) lcd.print("Geig");
+			if (mode == 2) lcd.print("Inf");
+			if (mode == 3) lcd.print("Geig 1");
+			if (mode == 4) lcd.print("Geig 2");
+			if (mode == 5) lcd.print("Geig 3");
 			//Seconda Riga
 			lcd.setCursor(0,1);
 			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[19]))); //Sec:
@@ -703,10 +711,12 @@ void display_handle(uint8_t func) {
 			lcd.setCursor(3,0);
 			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[17]))); //:
 			lcd.print(buffer);
-			lcd.setCursor(9,0);
-			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[22]))); //Mn:
-			lcd.print(buffer);
-			//lcd.print("Mn:");
+			if (mode==2) {	//Se sono in modalità Geiger non scrivo i minuti
+				lcd.setCursor(9,0);
+				strcpy_P(buffer, (char*)pgm_read_word(&(string_table[22]))); //Mn:
+				lcd.print(buffer);
+				//lcd.print("Mn:");
+			}
 			lcd.setCursor(9,1);
 			//recupero la scala in maniera automatica			
 			lcd.print(getDoseScaleSymbol());
@@ -715,9 +725,10 @@ void display_handle(uint8_t func) {
 
 			lcd.setCursor(4,0);
 			lcd.print(CPM,0);	//Scrivo i CPM
-			lcd.setCursor(12,0);
-			lcd.print(min_totali);	//Scrivo i minuti
-			lcd.setCursor(2, 1); 
+			if (mode==2) {	//Se sono in modalità Geiger non scrivo i minuti
+				lcd.setCursor(12,0);
+				lcd.print(min_totali);	//Scrivo i minuti
+			}
 			lcd.setCursor(2, 1);
 			lcd.print(Rad,3);		//Scrivo il valore calcolato
 			break;
@@ -852,16 +863,14 @@ void setting_handle(uint8_t func) {
 				lcdBacklightHandle();
 				display_handle(7);	// Visualizzo il valore salvato EEPROM
 				delay(50);
-				if (digitalRead(KEY_UP)== HIGH && mode < 3) mode++;
+				if (digitalRead(KEY_UP)== HIGH && mode < 6) mode++;
 				if (digitalRead(KEY_DW)== HIGH && mode > 0) mode--;
 				if (digitalRead(KEY_MENU)== LOW) break;
 				delay(50);
 				if (digitalRead(KEY_SET)== LOW) {
 					delay(50);
 					if (digitalRead(KEY_SET)== LOW) {
-						//lcd.setCursor(6, 1); 
-						//lcd.print("    ");
-						EEPROM.write(0x03,mode);    // Scrive Set della Base Tempi       
+						EEPROM.write(0x03,mode);     
 					}
 				}
 			}
@@ -1138,7 +1147,7 @@ void EEPROM_Init_Read() {
 	if (SensCustom==0xFF) Sens = 200;		// Se la EEPROM è vuota a 255 (Byte), imposto la sensibilità a 200
 
 	mode=EEPROM.read(0x03);					// Modalità Scaler, Ratemeter o Geiger
-	if (mode > 2) mode = 0;					// Se la EEPROM è vuota, imposto a One Count
+	if (mode > 6) mode = 0;					// Se la EEPROM è vuota, imposto a One Count
 
 	c_unit=EEPROM.read(0x04);				//Unità di misura 0=mR/h 1=uR/h 2=uSv/h
 	if (c_unit==255) c_unit=2;				//Se la EEPROM è vuota, imposto i uSv/h come default
@@ -1248,7 +1257,8 @@ void pulse_count(){
 
 	//mode == 0 One Count
 	//mode == 1 Loop Counts
-	//mode == 2 Geiger
+	//mode == 2 Infinite
+	//mode == 3 Geiger
 
 		inizio = 0;		//azzero le variabili
 		sec_totali = 0;
@@ -1260,7 +1270,7 @@ void pulse_count(){
 	
 
 	if (mode==2){
-		//Conteggio Geiger
+		//Conteggio Infinito
 		delay(500);
 		inizio = millis();	//Momento iniziale del conteggio
 		do{
@@ -1294,7 +1304,49 @@ void pulse_count(){
 				if (digitalRead(KEY_MENU)==LOW) Log_Write();
 			}
 		}while (digitalRead(KEY_SET)==HIGH);	//Attendo la pressione del tasto SET e.....
-
+		geiger_status = 3;	//Vado alla schermata di riepilogo generale
+	}else if ((mode==3)||(mode==4)||(mode==5)){
+		//Conteggio Geiger
+		delay(500);
+		//inizio = millis();	//Momento iniziale del conteggio
+		do{
+			Buzzer();									//Suono il buzzer se necessario
+			lcdBacklightHandle();						//Gestisco la Retro Illuminazione
+			if (b100ms==true){
+				//Incremento la variabile per il calcolo
+				geiger_calc_time++;
+			}
+			uint8_t secs=0;
+			secs = (mode-2);
+			if (geiger_calc_time == (secs*10)) {	//Conteggio i timeout di 500 ms per 4 volte 2000 ms = 2 sec
+				//Que effettuo il calcoli del Geiger ogni xx secondi, modificabili aumentando il numero di volte
+				//Che la variabile geiger_calc_time si incrementoa ogni 500ms
+				sec_totali = secs;								//Forzo i secondi totali a 2
+				CPM = (float(TotImp)/float(sec_totali));	//Calcolo i CPS
+				CPM = CPM*60;								//Converto in CPM
+				//Unità di misura 0=Sievert 1=Röntgen
+				switch (c_unit){					//In base all'unità di misura, conteggio il valore in scala micro
+				  case 0:	//Sievert
+						RadRaw=(CPM/Sens)*10;
+						break;
+				  case 1:	//Röntgen
+						RadRaw=(CPM/Sens)*1000;
+						break;
+				}
+				Rad=RadRaw*getDoseMultiplier(RadRaw); //In base al valore calcolato applico la Scala
+				TotImp = 0;			//Azzero il conteggio degli impulsi
+				geiger_calc_time=0;	//Resetto la variabile per iniziare un nuovo conteggio
+			}
+			if (b100ms == true){		//aggiorno il display ogni 100ms
+				display_handle(16);		//Visualizzo sul display la parte statica e dinamica
+				b100ms = false;
+			}
+			//Se premo il tasto menù durante il conteggio scrivo il log
+			if (digitalRead(KEY_MENU)==LOW) {
+				delay(200); //debounc
+				if (digitalRead(KEY_MENU)==LOW) Log_Write();
+			}
+		}while (digitalRead(KEY_SET)==HIGH);	//Attendo la pressione del tasto SET e.....
 		geiger_status = 3;	//Vado alla schermata di riepilogo generale
 
 	}else{
@@ -1425,7 +1477,7 @@ void Log_Write(){
 		strcpy_P(buffer, (char*)pgm_read_word(&(string_table[24])));
 		sd_file.print(buffer); // ,
 		delay(50);
-		//Se sono in Geiger Mode scrivo i seconti totali
+		//Se sono in Infinite Mode scrivo i seconti totali
 		if (mode==2) sd_file.print(sec_totali,DEC);
 		else sd_file.print(BaseTempi,DEC);
 		delay(50);
