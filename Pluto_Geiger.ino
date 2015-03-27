@@ -118,6 +118,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 0.14	-	Corretti i bug sulla base tempi
 			Corrette alcuni layout del dipslay
 0.15	-	Contatore Geiger con 3 tempi di campionamento
+			Spostata la scritta a string_1 fruori da PROGMEM direttamente in RAM, per fare posto al firmware
 
 
 */
@@ -158,8 +159,9 @@ float Molt=6;					// * * * Moltiplicatore fra CP e CPM (dipende da BaseTempi)
 float Rad=0;					// Radioattività espressa nella scala calcolata
 float RadRaw=0;					// Radioattività senza moltiplicatore
 int beep_flag=0;
-uint8_t mode = 0;				//0 = One Count 1 = Loop Count 2 = infinite 3 = Geiger
-uint8_t geiger_calc_time=0;		//Variabile che contiene il numero di volte che devono passare 500ms prima di fare il conteggio del geiger
+uint8_t mode = 0;				//0 = One Count 1 = Loop Count 2 = infinite 3 = Geiger1 4 = Geiger2 5 = Geiger3
+
+uint8_t geiger_calc_time=0;		//Variabile che contiene il numero di volte che devono passare 100ms prima di fare il conteggio del geiger
 
 //Unità di Misura
 uint8_t c_unit = 0;														//Unità di misura 0=Sievert, 1=Röntgen
@@ -244,8 +246,8 @@ Voltmetro voltmt1(2,330000.0,100000.0,1.1);
 uint8_t batt_perc = 0;
 
 //Variabili per il display salvate nella flash
-//prog_char string_0[] PROGMEM = "Pluto Geiger";   
-prog_char string_1[] PROGMEM = "Prb CPM x mR/h";
+prog_char string_0[] PROGMEM = "Pluto Geiger";   
+//prog_char string_1[] PROGMEM = "Prb CPM x mR/h";
 prog_char string_2[] PROGMEM = "Prb Preset";
 prog_char string_3[] PROGMEM = "BackLight";
 prog_char string_4[] PROGMEM = "Battery";
@@ -272,7 +274,7 @@ prog_char string_24[] PROGMEM = ",";
 prog_char string_25[] PROGMEM = "Geiger";
 
 // Then set up a table to refer to your strings.
-const char *string_table[] PROGMEM = {"", string_1, string_2, string_3, string_4, string_5, string_6, string_7, string_8, string_9,
+const char *string_table[] PROGMEM = {string_0, string_2, string_3, string_4, string_5, string_6, string_7, string_8, string_9,
 										string_10, string_11, string_12, string_13, string_14, string_15, string_16, string_17, string_18, string_19,
 										string_20, string_21, string_22, string_23, string_24, string_25};
 char buffer[20];    // make sure this is large enough for the largest string it must hold
@@ -462,9 +464,9 @@ void display_handle(uint8_t func) {
 		case 0: {	//Splash Screen
 			lcd.clear();
 			lcd.setCursor(2, 0); 
-			//strcpy_P(buffer, (char*)pgm_read_word(&(string_table[0]))); //Pluto Geiger
-			//lcd.print(buffer);
-			lcd.print("Pluto Geiger");
+			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[0]))); //Pluto Geiger
+			lcd.print(buffer);
+			//lcd.print("Pluto Geiger");
 			lcd.setCursor(6, 1); 
 			lcd.print("v"+fw_version);
 			break;
@@ -473,8 +475,8 @@ void display_handle(uint8_t func) {
 		case 1: {	//Setup CPM Sonda
 			lcd.clear();
 			lcd.setCursor(2, 0); 
-			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[1]))); //Prb CPM x mR/h
-			lcd.print(buffer);
+			//strcpy_P(buffer, (char*)pgm_read_word(&(string_table[1]))); //Prb CPM x mR/h
+			//lcd.print(buffer);
 			//lcd.print("Prb CPM x mR/h");
 			lcd.setCursor(6, 1);
 			lcd.print(SensCustom);
