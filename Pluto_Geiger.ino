@@ -119,6 +119,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 			Corrette alcuni layout del dipslay
 0.15	-	Contatore Geiger con 3 tempi di campionamento
 			Spostata la scritta a string_1 fruori da PROGMEM direttamente in RAM, per fare posto al firmware
+			Reinserita string1 vuota, altrimenti spostava tutte le scritte del display
 
 
 */
@@ -248,6 +249,7 @@ uint8_t batt_perc = 0;
 //Variabili per il display salvate nella flash
 prog_char string_0[] PROGMEM = "Pluto Geiger";   
 //prog_char string_1[] PROGMEM = "Prb CPM x mR/h";
+prog_char string_1[] PROGMEM = "";
 prog_char string_2[] PROGMEM = "Prb Preset";
 prog_char string_3[] PROGMEM = "BackLight";
 prog_char string_4[] PROGMEM = "Battery";
@@ -274,7 +276,7 @@ prog_char string_24[] PROGMEM = ",";
 prog_char string_25[] PROGMEM = "Geiger";
 
 // Then set up a table to refer to your strings.
-const char *string_table[] PROGMEM = {string_0, string_2, string_3, string_4, string_5, string_6, string_7, string_8, string_9,
+const char *string_table[] PROGMEM = {string_0, string_1, string_2, string_3, string_4, string_5, string_6, string_7, string_8, string_9,
 										string_10, string_11, string_12, string_13, string_14, string_15, string_16, string_17, string_18, string_19,
 										string_20, string_21, string_22, string_23, string_24, string_25};
 char buffer[20];    // make sure this is large enough for the largest string it must hold
