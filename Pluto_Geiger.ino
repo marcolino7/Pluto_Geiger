@@ -255,8 +255,8 @@ prog_char string_1[] PROGMEM = "";
 prog_char string_2[] PROGMEM = "";  //Prb Preset
 prog_char string_3[] PROGMEM = "";   //BackLight
 prog_char string_4[] PROGMEM = "";	//Battery		
-prog_char string_5[] PROGMEM = "Count Unit";
-prog_char string_6[] PROGMEM = "Counter Mode";
+prog_char string_5[] PROGMEM = "";	//Count Unit
+prog_char string_6[] PROGMEM = "";	//Counter Mode
 prog_char string_7[] PROGMEM = "One Count";
 prog_char string_8[] PROGMEM = "Loop Count";
 prog_char string_9[] PROGMEM = "Infinite";
@@ -575,9 +575,9 @@ void display_handle(uint8_t func) {
 			//Aspetto del display durante il setup della modalità operativa
 			lcd.clear();
 			lcd.setCursor(3,0);
-			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[6]))); //Count Mode
-			lcd.print(buffer);
-			//lcd.print("Count Mode");
+			//strcpy_P(buffer, (char*)pgm_read_word(&(string_table[6]))); //Count Mode
+			//lcd.print(buffer);
+			lcd.print("Counter Mode");
 			if (mode == 0) {
 				lcd.setCursor(4,1);
 				strcpy_P(buffer, (char*)pgm_read_word(&(string_table[7]))); //One Count
@@ -616,9 +616,9 @@ void display_handle(uint8_t func) {
 			//Aspetto del display durante il setup delle Unità di misura
 			lcd.clear();
 			lcd.setCursor(3,0);
-			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[5]))); //Count Unit
-			lcd.print(buffer);
-			//lcd.print("Count Unit");
+			//strcpy_P(buffer, (char*)pgm_read_word(&(string_table[5]))); //Count Unit
+			//lcd.print(buffer);
+			lcd.print("Count Unit");
 			
 			//Unità di misura 0=Sievert 1=Röntgen
 			lcd.setCursor(6,1);
