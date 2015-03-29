@@ -120,6 +120,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 0.15	-	Contatore Geiger con 3 tempi di campionamento
 			Spostata la scritta a string_1 fruori da PROGMEM direttamente in RAM, per fare posto al firmware
 			Reinserita string1 vuota, altrimenti spostava tutte le scritte del display
+			Aumentato il refresh del display a 300ms
 
 
 */
@@ -187,6 +188,7 @@ uint8_t geiger_status = 3;	//Stato dell'apparecchio per gestire i loop
 							//2 Visualizzazione Risultati
 							//3 Riassunto dei settaggi - Schermata iniziale
 
+uint8_t display_refresh=0;			//Variabile che si incrementa ogni 100ms per effettuare il refresh del display
 unsigned long lcd_millis = 0;		//Contiene i millis() a cui si è acceso il display
 boolean lcd_state = 0;				//Contiene lo stato della illuminazione del display
 const char* lcd_desc[] = {"Off","On","10","20","30","60","120"};
@@ -250,9 +252,9 @@ uint8_t batt_perc = 0;
 prog_char string_0[] PROGMEM = "Pluto Geiger";   
 //prog_char string_1[] PROGMEM = "Prb CPM x mR/h";
 prog_char string_1[] PROGMEM = "";
-prog_char string_2[] PROGMEM = "Prb Preset";
-prog_char string_3[] PROGMEM = "BackLight";
-prog_char string_4[] PROGMEM = "Battery";
+prog_char string_2[] PROGMEM = "";  //Prb Preset
+prog_char string_3[] PROGMEM = "";   //BackLight
+prog_char string_4[] PROGMEM = "";	//Battery		
 prog_char string_5[] PROGMEM = "Count Unit";
 prog_char string_6[] PROGMEM = "Counter Mode";
 prog_char string_7[] PROGMEM = "One Count";
@@ -745,9 +747,9 @@ void display_handle(uint8_t func) {
 			//Visualizzazione del display dello stato della batteria
 			lcd.clear();
 			lcd.setCursor(4,0);
-			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[4]))); //Battery
-			lcd.print(buffer);
-			//lcd.print("Batt");
+			//strcpy_P(buffer, (char*)pgm_read_word(&(string_table[4]))); //Battery
+			//lcd.print(buffer);
+			lcd.print("Battery");
 
 			lcd.setCursor(0,1);
 			lcd.setCursor(1,1);
@@ -765,9 +767,9 @@ void display_handle(uint8_t func) {
 			//Probe Preset
 			lcd.clear();
 			lcd.setCursor(4, 0); 
-			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[2])));	//Prb Preset
-			lcd.print(buffer);
-			//lcd.print("Prb Preset");
+			//strcpy_P(buffer, (char*)pgm_read_word(&(string_table[2])));	//Prb Preset
+			//lcd.print(buffer);
+			lcd.print("Prb Preset");
 			lcd.setCursor(7, 1);
 			lcd.print(probe_preset_list[probe_preset]);
 			break;
@@ -776,9 +778,9 @@ void display_handle(uint8_t func) {
 			//Impostazioni del Display Schermo Statico
 			lcd.clear();
 			lcd.setCursor(4,0);
-			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[3])));	//BackLight
-			lcd.print(buffer);
-			//lcd.print("BackLight");	
+			//strcpy_P(buffer, (char*)pgm_read_word(&(string_table[3])));	//BackLight
+			//lcd.print(buffer);
+			lcd.print("BackLight");	
 			if (lcd_mode < 2) {
 				//On o OFF
 				lcd.setCursor(4, 1);
@@ -1299,8 +1301,12 @@ void pulse_count(){
 				b500ms=false;	//Resetto la variabile dell'interrupt ogni 500ms
 			}
 			if (b100ms == true){		//aggiorno il display ogni 100ms
-				display_handle(16);		//Visualizzo sul display la parte statica e dinamica
+				display_refresh++;
 				b100ms = false;
+			}
+			if (display_refresh==3) {
+				display_handle(16);		//Visualizzo sul display la parte statica e dinamica
+				display_refresh=0;
 			}
 			//Se premo il tasto menù durante il conteggio scrivo il log
 			if (digitalRead(KEY_MENU)==LOW) {
@@ -1341,9 +1347,14 @@ void pulse_count(){
 				TotImp = 0;			//Azzero il conteggio degli impulsi
 				geiger_calc_time=0;	//Resetto la variabile per iniziare un nuovo conteggio
 			}
+			
 			if (b100ms == true){		//aggiorno il display ogni 100ms
-				display_handle(16);		//Visualizzo sul display la parte statica e dinamica
+				display_refresh++;
 				b100ms = false;
+			}
+			if (display_refresh==3) {
+				display_handle(16);		//Visualizzo sul display la parte statica e dinamica
+				display_refresh=0;
 			}
 			//Se premo il tasto menù durante il conteggio scrivo il log
 			if (digitalRead(KEY_MENU)==LOW) {
@@ -1362,9 +1373,13 @@ void pulse_count(){
 			// Visualizza conteggio in corso 10 volte ogni secondo
 			//if (millis()%100 < 1) display_handle(4); //Display in conteggio
 			//Visualizzo il conteggio ogni 500 ms
-			if (b100ms == true) {
-				display_handle(3);
+			if (b100ms == true){		//aggiorno il display ogni 100ms
+				display_refresh++;
 				b100ms = false;
+			}
+			if (display_refresh==3) {
+				display_handle(3);		//Visualizzo sul display la parte statica e dinamica
+				display_refresh=0;
 			}
 			VarServInt1=digitalRead(KEY_MENU); //Leggo il tasto menù per vedere se interrompere
 			VarServInt =digitalRead(KEY_SET); //Leggo il tasto SET per vedere se interrompere
