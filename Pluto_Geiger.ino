@@ -481,7 +481,7 @@ void display_handle(uint8_t func) {
 			lcd.setCursor(2, 0); 
 			//strcpy_P(buffer, (char*)pgm_read_word(&(string_table[1]))); //Prb CPM x mR/h
 			//lcd.print(buffer);
-			//lcd.print("Prb CPM x mR/h");
+			lcd.print("Prb CPM x mR/h");
 			lcd.setCursor(6, 1);
 			lcd.print(SensCustom);
 			break;
