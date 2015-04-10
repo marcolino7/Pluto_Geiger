@@ -168,16 +168,17 @@ uint8_t geiger_calc_time=0;		//Variabile che contiene il numero di volte che dev
 //Unità di Misura
 uint8_t c_unit = 0;														//Unità di misura 0=Sievert, 1=Röntgen
 prog_char unit_0[] PROGMEM = "Siev.";
-prog_char unit_1[] PROGMEM = "Ront.";
-const char *unit_set_desc[] PROGMEM = {unit_0,unit_1};					//Nomi delle misure per i settings
+//prog_char unit_1[] PROGMEM = "Ront.";
+//const char *unit_set_desc[] PROGMEM = {unit_0,unit_1};					//Nomi delle misure per i settings
+const char *unit_set_desc[] PROGMEM = {unit_0};					//Nomi delle misure per i settings
 prog_char unit_sv_0[] PROGMEM =	"Sv/h";
 prog_char unit_sv_1[] PROGMEM = "mSv/h";
 prog_char unit_sv_2[] PROGMEM = "uSv/h";
 const char *unit_sv_desc[] PROGMEM = {unit_sv_0,unit_sv_1,unit_sv_2};	//Misure in Sievert
-prog_char unit_rt_0[] PROGMEM =	"R/h";
-prog_char unit_rt_1[] PROGMEM = "mR/h";
-prog_char unit_rt_2[] PROGMEM = "uR/h";
-const char *unit_rt_desc[] PROGMEM = {unit_rt_0,unit_rt_1,unit_rt_2};	//Misure in Röntgen
+//prog_char unit_rt_0[] PROGMEM =	"R/h";
+//prog_char unit_rt_1[] PROGMEM = "mR/h";
+//prog_char unit_rt_2[] PROGMEM = "uR/h";
+//const char *unit_rt_desc[] PROGMEM = {unit_rt_0,unit_rt_1,unit_rt_2};	//Misure in Röntgen
 
 int T2count=0;					//Counter che viene incrementato dal timer 2
 boolean lampeggio=0;			//variabile che si inverte ogni 500ms e serve per far lampeggiare le cose
@@ -455,7 +456,7 @@ char *getDoseScaleSymbol() {
 			strcpy_P(buffer, (char*)pgm_read_word(&(unit_sv_desc[i]))); //Sievert
 			break;
 		case 1:
-			strcpy_P(buffer, (char*)pgm_read_word(&(unit_rt_desc[i]))); //Röntgen
+			//strcpy_P(buffer, (char*)pgm_read_word(&(unit_rt_desc[i]))); //Röntgen
 			break;
 	}
 	return buffer;
@@ -613,6 +614,7 @@ void display_handle(uint8_t func) {
 			break;
 	   }
 		case 9:{
+			/*
 			//Aspetto del display durante il setup delle Unità di misura
 			lcd.clear();
 			lcd.setCursor(3,0);
@@ -623,7 +625,7 @@ void display_handle(uint8_t func) {
 			//Unità di misura 0=Sievert 1=Röntgen
 			lcd.setCursor(6,1);
 			strcpy_P(buffer, (char*)pgm_read_word(&(unit_set_desc[c_unit])));
-			lcd.print(buffer);
+			lcd.print(buffer);*/
 			break;
 	   }
 		case 10:{
@@ -884,7 +886,7 @@ void setting_handle(uint8_t func) {
 			break;
 		}
 		case 3: { //Unità di misura
-			display_handle(9);
+/*			display_handle(9);
 			delay(500);
 			do {
 				Buzzer();
@@ -904,7 +906,7 @@ void setting_handle(uint8_t func) {
 					}
 				}
 			}
-			while (digitalRead(KEY_SET)== HIGH);
+			while (digitalRead(KEY_SET)== HIGH);*/
 			break;
 		}
 		case 4: { //Ora
