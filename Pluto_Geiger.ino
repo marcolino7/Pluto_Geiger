@@ -166,11 +166,11 @@ uint8_t mode = 0;				//0 = One Count 1 = Loop Count 2 = infinite 3 = Geiger1 4 =
 uint8_t geiger_calc_time=0;		//Variabile che contiene il numero di volte che devono passare 100ms prima di fare il conteggio del geiger
 
 //Unità di Misura
-uint8_t c_unit = 0;														//Unità di misura 0=Sievert, 1=Röntgen
+//uint8_t c_unit = 0;														//Unità di misura 0=Sievert, 1=Röntgen
 prog_char unit_0[] PROGMEM = "Siev.";
 //prog_char unit_1[] PROGMEM = "Ront.";
 //const char *unit_set_desc[] PROGMEM = {unit_0,unit_1};					//Nomi delle misure per i settings
-const char *unit_set_desc[] PROGMEM = {unit_0};					//Nomi delle misure per i settings
+//const char *unit_set_desc[] PROGMEM = {unit_0};					//Nomi delle misure per i settings
 prog_char unit_sv_0[] PROGMEM =	"Sv/h";
 prog_char unit_sv_1[] PROGMEM = "mSv/h";
 prog_char unit_sv_2[] PROGMEM = "uSv/h";
@@ -252,7 +252,7 @@ uint8_t batt_perc = 0;
 //Variabili per il display salvate nella flash
 prog_char string_0[] PROGMEM = "Pluto Geiger";   
 //prog_char string_1[] PROGMEM = "Prb CPM x mR/h";
-prog_char string_1[] PROGMEM = "";
+prog_char string_1[] PROGMEM = "Siev.";	//Siev.
 prog_char string_2[] PROGMEM = "";  //Prb Preset
 prog_char string_3[] PROGMEM = "";   //BackLight
 prog_char string_4[] PROGMEM = "";	//Battery		
@@ -451,14 +451,17 @@ char *getDoseScaleSymbol() {
 	if (RadRaw < 10) i=2;			// micro
 	else if (RadRaw < 10000) i=1;	// milli
 	else i=0;					// unità Intera
-	switch (c_unit) {
+	
+	strcpy_P(buffer, (char*)pgm_read_word(&(unit_sv_desc[i]))); //Sievert
+
+	/*switch (c_unit) {
 		case 0:
 			strcpy_P(buffer, (char*)pgm_read_word(&(unit_sv_desc[i]))); //Sievert
 			break;
 		case 1:
 			//strcpy_P(buffer, (char*)pgm_read_word(&(unit_rt_desc[i]))); //Röntgen
 			break;
-	}
+	}*/
 	return buffer;
 }
 
@@ -656,7 +659,8 @@ void display_handle(uint8_t func) {
 			lcd.setCursor(4,1);
 			lcd.print(BaseTempi,DEC);
 			lcd.setCursor(10,1);
-			strcpy_P(buffer, (char*)pgm_read_word(&(unit_set_desc[c_unit])));
+			//strcpy_P(buffer, (char*)pgm_read_word(&(unit_set_desc[c_unit])));
+			strcpy_P(buffer, (char*)pgm_read_word(&(string_table[0])));
 			lcd.print(buffer);
 			//lcd.print(getDoseScaleSymbol());
 			batteryLevelHandle();
@@ -1157,8 +1161,8 @@ void EEPROM_Init_Read() {
 	mode=EEPROM.read(0x03);					// Modalità Scaler, Ratemeter o Geiger
 	if (mode > 6) mode = 0;					// Se la EEPROM è vuota, imposto a One Count
 
-	c_unit=EEPROM.read(0x04);				//Unità di misura 0=mR/h 1=uR/h 2=uSv/h
-	if (c_unit==255) c_unit=2;				//Se la EEPROM è vuota, imposto i uSv/h come default
+	//c_unit=EEPROM.read(0x04);				//Unità di misura 0=mR/h 1=uR/h 2=uSv/h
+	//if (c_unit==255) c_unit=2;				//Se la EEPROM è vuota, imposto i uSv/h come default
 
 	lcd_mode=EEPROM.read(0x05);				//Modalita dell'LCD
 	if (lcd_mode==255) lcd_mode=1;			//Se la EEPROM è vuota, imposto il display sempre acceso
@@ -1176,7 +1180,7 @@ void QuickSet_Handle() {
 	setting_handle(8);	//Sensibilità Preset della Sonda
 	setting_handle(1);	//Base Tempi
 	setting_handle(2);	//Modalità
-	setting_handle(3);	//Unità di Misura
+	//setting_handle(3);	//Unità di Misura
 
 
 	Sensibilita:    
@@ -1197,7 +1201,7 @@ void FullSet_Handle() {
 	setting_handle(0);	//Sensibilità Custom della sonda
 	setting_handle(1);	//Base Tempi
 	setting_handle(2);	//Modalità
-	setting_handle(3);	//Unità di Misura
+	//setting_handle(3);	//Unità di Misura
 	setting_handle(4);	//Ora
 	setting_handle(5);	//Data
 	setting_handle(6);	//Batteria
@@ -1289,15 +1293,17 @@ void pulse_count(){
 				min_totali = sec_totali/60;				//Minuti totali, servono per il display
 				CPM = (float(TotImp)/float(sec_totali));
 				CPM = CPM*60;							//CPM totali dall'inizio del conteggio
+
+				RadRaw=(CPM/Sens)*10;		//Calcolo in uSv/h
 				//Unità di misura 0=Sievert 1=Röntgen
-				switch (c_unit){					//In base all'unità di misura, conteggio il valore in scala micro
-				  case 0:	//Sievert
+				/*switch (c_unit){					//In base all'unità di misura, conteggio il valore in scala micro
+				case 0:	//Sievert
 						RadRaw=(CPM/Sens)*10;
 						break;
 				  case 1:	//Röntgen
 						RadRaw=(CPM/Sens)*1000;
 						break;
-				}
+				}*/
 				Rad=RadRaw*getDoseMultiplier(RadRaw); //In base al valore calcolato applico la Scala
 
 				b500ms=false;	//Resetto la variabile dell'interrupt ogni 500ms
@@ -1336,15 +1342,17 @@ void pulse_count(){
 				sec_totali = secs;								//Forzo i secondi totali a 2
 				CPM = (float(TotImp)/float(sec_totali));	//Calcolo i CPS
 				CPM = CPM*60;								//Converto in CPM
+
+				RadRaw=(CPM/Sens)*10;		//Calcolo in uSv/h
 				//Unità di misura 0=Sievert 1=Röntgen
-				switch (c_unit){					//In base all'unità di misura, conteggio il valore in scala micro
+				/*switch (c_unit){					//In base all'unità di misura, conteggio il valore in scala micro
 				  case 0:	//Sievert
 						RadRaw=(CPM/Sens)*10;
 						break;
 				  case 1:	//Röntgen
 						RadRaw=(CPM/Sens)*1000;
 						break;
-				}
+				}*/
 				Rad=RadRaw*getDoseMultiplier(RadRaw); //In base al valore calcolato applico la Scala
 				TotImp = 0;			//Azzero il conteggio degli impulsi
 				geiger_calc_time=0;	//Resetto la variabile per iniziare un nuovo conteggio
@@ -1407,14 +1415,15 @@ void end_count() {
 	sei();
 
 	//Unità di misura 0=Sievert 1=Röntgen
-	switch (c_unit){					//In base all'unità di misura, conteggio il valore in scala micro
+	/*switch (c_unit){					//In base all'unità di misura, conteggio il valore in scala micro
 		case 0:	//Sievert
 			RadRaw=(CPM/Sens)*10;
 			break;
 		case 1:	//Röntgen
 			RadRaw=(CPM/Sens)*1000;
 			break;
-	}
+	}*/
+	RadRaw=(CPM/Sens)*10;						//Calcolo in uSv/h
 	Rad=RadRaw*getDoseMultiplier(RadRaw);		//In base al valore calcolato applico la Scala
 
 	display_handle(5);
