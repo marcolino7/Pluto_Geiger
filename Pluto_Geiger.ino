@@ -1498,6 +1498,9 @@ void Log_Write(){
 		delay(50);
 		//Se sono in Infinite Mode scrivo i seconti totali
 		if (mode==2) sd_file.print(sec_totali,DEC);
+		else if (mode==3) sd_file.print(1,DEC);
+		else if (mode==4) sd_file.print(2,DEC);
+		else if (mode==5) sd_file.print(3,DEC);
 		else sd_file.print(BaseTempi,DEC);
 		delay(50);
 		strcpy_P(buffer, (char*)pgm_read_word(&(string_table[24])));
