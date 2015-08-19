@@ -122,6 +122,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 			Reinserita string1 vuota, altrimenti spostava tutte le scritte del display
 			Aumentato il refresh del display a 300ms
 0.16	-	Rimossi i Röntgen come misura
+0.17	-	Porting a Arduino IDE 1.6.X
 
 
 */
@@ -147,7 +148,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 
 
 //Versione Firmware
-const String fw_version = "0.16";
+const String fw_version = "0.17";
 
 //Inizializzo l'LCD via I2C
 LiquidCrystal_I2C lcd(lcd_addr,16,2);	//inizializzo il display 16 col 2 righe
@@ -172,10 +173,12 @@ uint8_t geiger_calc_time=0;		//Variabile che contiene il numero di volte che dev
 //prog_char unit_1[] PROGMEM = "Ront.";
 //const char *unit_set_desc[] PROGMEM = {unit_0,unit_1};					//Nomi delle misure per i settings
 //const char *unit_set_desc[] PROGMEM = {unit_0};					//Nomi delle misure per i settings
-prog_char unit_sv_0[] PROGMEM =	"Sv/h";
-prog_char unit_sv_1[] PROGMEM = "mSv/h";
-prog_char unit_sv_2[] PROGMEM = "uSv/h";
-const char *unit_sv_desc[] PROGMEM = {unit_sv_0,unit_sv_1,unit_sv_2};	//Misure in Sievert
+const char unit_sv_0[] PROGMEM =	"Sv/h";
+const char unit_sv_1[] PROGMEM = "mSv/h";
+const char unit_sv_2[] PROGMEM = "uSv/h";
+//const char * unit_sv_desc[] PROGMEM = {unit_sv_0,unit_sv_1,unit_sv_2};	//Misure in Sievert
+PGM_P const unit_sv_desc[] PROGMEM = {unit_sv_0,unit_sv_1,unit_sv_2};	//Misure in Sievert
+// const string_table[]  PROGMEM =
 //prog_char unit_rt_0[] PROGMEM =	"R/h";
 //prog_char unit_rt_1[] PROGMEM = "mR/h";
 //prog_char unit_rt_2[] PROGMEM = "uR/h";
@@ -251,35 +254,36 @@ Voltmetro voltmt1(2,330000.0,100000.0,1.1);
 uint8_t batt_perc = 0;
 
 //Variabili per il display salvate nella flash
-prog_char string_0[] PROGMEM = "Pluto Geiger";   
-prog_char string_1[] PROGMEM = "";	//Prb CPM x mR/h
-prog_char string_2[] PROGMEM = "";  //Prb Preset
-prog_char string_3[] PROGMEM = "";   //BackLight
-prog_char string_4[] PROGMEM = "";	//Battery		
-prog_char string_5[] PROGMEM = "Siev.";	//Count Unit //Siev
-prog_char string_6[] PROGMEM = "";	//Counter Mode
-prog_char string_7[] PROGMEM = "One Count";
-prog_char string_8[] PROGMEM = "Loop Count";
-prog_char string_9[] PROGMEM = "Infinite";
-prog_char string_10[] PROGMEM = "sec";
-prog_char string_11[] PROGMEM = "SD Fail";
-prog_char string_12[] PROGMEM = "SD OK";
-prog_char string_13[] PROGMEM = "Time sec";
-prog_char string_14[] PROGMEM = "Time";
-prog_char string_15[] PROGMEM = "Pulse";
-prog_char string_16[] PROGMEM = "CPM";
-prog_char string_17[] PROGMEM = ":";
-prog_char string_18[] PROGMEM = "Prb:";
-prog_char string_19[] PROGMEM = "Sec:";
-prog_char string_20[] PROGMEM = "Time";
-prog_char string_21[] PROGMEM = "Date";
-prog_char string_22[] PROGMEM = "Mn:";
-prog_char string_23[] PROGMEM = "/";
-prog_char string_24[] PROGMEM = ",";
-prog_char string_25[] PROGMEM = "Geiger";
+const char string_0[] PROGMEM = "Pluto Geiger";   
+const char string_1[] PROGMEM = "";	//Prb CPM x mR/h
+const char string_2[] PROGMEM = "";  //Prb Preset
+const char string_3[] PROGMEM = "";   //BackLight
+const char string_4[] PROGMEM = "";	//Battery		
+const char string_5[] PROGMEM = "Siev.";	//Count Unit //Siev
+const char string_6[] PROGMEM = "";	//Counter Mode
+const char string_7[] PROGMEM = "One Count";
+const char string_8[] PROGMEM = "Loop Count";
+const char string_9[] PROGMEM = "Infinite";
+const char string_10[] PROGMEM = "sec";
+const char string_11[] PROGMEM = "SD Fail";
+const char string_12[] PROGMEM = "SD OK";
+const char string_13[] PROGMEM = "Time sec";
+const char string_14[] PROGMEM = "Time";
+const char string_15[] PROGMEM = "Pulse";
+const char string_16[] PROGMEM = "CPM";
+const char string_17[] PROGMEM = ":";
+const char string_18[] PROGMEM = "Prb:";
+const char string_19[] PROGMEM = "Sec:";
+const char string_20[] PROGMEM = "Time";
+const char string_21[] PROGMEM = "Date";
+const char string_22[] PROGMEM = "Mn:";
+const char string_23[] PROGMEM = "/";
+const char string_24[] PROGMEM = ",";
+const char string_25[] PROGMEM = "Geiger";
 
 // Then set up a table to refer to your strings.
-const char *string_table[] PROGMEM = {string_0, string_1, string_2, string_3, string_4, string_5, string_6, string_7, string_8, string_9,
+//const char *string_table[] PROGMEM = {string_0, string_1, string_2, string_3, string_4, string_5, string_6, string_7, string_8, string_9,
+PGM_P const string_table[] PROGMEM = {string_0, string_1, string_2, string_3, string_4, string_5, string_6, string_7, string_8, string_9,
 										string_10, string_11, string_12, string_13, string_14, string_15, string_16, string_17, string_18, string_19,
 										string_20, string_21, string_22, string_23, string_24, string_25};
 char buffer[20];    // make sure this is large enough for the largest string it must hold
