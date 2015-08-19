@@ -123,6 +123,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 			Aumentato il refresh del display a 300ms
 0.16	-	Rimossi i Röntgen come misura
 0.17	-	Porting a Arduino IDE 1.6.X
+0.18	-	Flag nel Log sul conteggio singolo e Loop premendo il tasto UP (ma nel codice devo mettere DW, è da capire)
 
 
 */
@@ -148,7 +149,7 @@ Cella Litio:	da 4,20 a 2,80 con un partitore formato da 2 reistenze all'1% da 33
 
 
 //Versione Firmware
-const String fw_version = "0.17";
+const String fw_version = "0.18";
 
 //Inizializzo l'LCD via I2C
 LiquidCrystal_I2C lcd(lcd_addr,16,2);	//inizializzo il display 16 col 2 righe
@@ -166,6 +167,8 @@ bool beep_flag=0;
 uint8_t mode = 0;				//0 = One Count 1 = Loop Count 2 = infinite 3 = Geiger1 4 = Geiger2 5 = Geiger3
 
 uint8_t geiger_calc_time=0;		//Variabile che contiene il numero di volte che devono passare 100ms prima di fare il conteggio del geiger
+
+byte log_flag = 0;				//Variabile che contiene il flag da scrivere nel Log come colonna aggiuntiva
 
 //Unità di Misura
 //uint8_t c_unit = 0;														//Unità di misura 0=Sievert, 1=Röntgen
@@ -1395,6 +1398,12 @@ void pulse_count(){
 				display_handle(3);		//Visualizzo sul display la parte statica e dinamica
 				display_refresh=0;
 			}
+			//Se premo il tasto UP durante il conteggio imposto il flag del log per il salvataggio successivo
+			if (digitalRead(KEY_DW)==LOW) {	//Il tasto UP corrisponde a DOWN non capisco perchè
+				//delay(200); //debounc
+				//if (digitalRead(KEY_UP)==LOW) Log_Write();
+				log_flag = 1;
+			}
 			VarServInt1=digitalRead(KEY_MENU); //Leggo il tasto menù per vedere se interrompere
 			VarServInt =digitalRead(KEY_SET); //Leggo il tasto SET per vedere se interrompere
 		} 
@@ -1536,8 +1545,13 @@ void Log_Write(){
 		strcpy_P(buffer, (char*)pgm_read_word(&(string_table[24])));
 		sd_file.print(buffer); // ,
 		delay(50);
-		sd_file.println(mode);
-		
+		sd_file.print(mode);
+		delay(50);
+		strcpy_P(buffer, (char*)pgm_read_word(&(string_table[24])));
+		sd_file.print(buffer); // ,
+		delay(50);
+		sd_file.println(log_flag);
+
 		delay(100);
 		sd_file.flush();		//Scrive definitivamente su SD
 		delay(100);
@@ -1548,6 +1562,7 @@ void Log_Write(){
 		lcd.print(" ");  
 
 		//Delay totale 1400 mS
+		log_flag = 0; //Resetto il flag del Log dopo la scrittura
 
 	}
 }
